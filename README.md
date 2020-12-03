@@ -4,6 +4,8 @@
 
 This is a discord bot library built on top of Discord.js, made for the Lospec Discord server. The main intent for this repository is to make it so people can contribute to our bot, but you could also build your own discord bot based on it. You gotta host it yourself though. Good luck with that. If you do, let us know! LB wishes he had more siblings.
 
+<table><tbody><tr><th></th></tr></tbody></table>
+
 ## Setup
 
 First make a discord bot here: https://discord.com/developers/applications
