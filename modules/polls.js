@@ -35,7 +35,7 @@ new Module('poll', 'message', /^!poll/i, function (message) {
 	//user just put a ? and then the first option
 	else if (options[0].includes('?')) {
 		let titleSplit = options[0].split('?');
-		title += ' '+titleSplit[0];
+		title += ' '+titleSplit[0]+'?';
 		options[0] = titleSplit[1];
 	}
 
