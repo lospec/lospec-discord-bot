@@ -6,8 +6,9 @@ const store = new Store({ path: __dirname+'/CONFIG.json' });
 const CONFIG = Object.assign({},store.get('config'));
 CONFIG.botName = CONFIG.botName||'Discord Bot';
 CONFIG.emojiTimeout = CONFIG.emojiTimeout||500;
-CONFIG.debug = CONFIG.debug||true;
-CONFIG.logIncomingEvents = CONFIG.logIncomingEvents||true;
+CONFIG.debug = CONFIG.hasOwnProperty('debug')?CONFIG.debug:true;
+CONFIG.logIncomingEvents = CONFIG.hasOwnProperty('logIncomingEvents')?CONFIG.logIncomingEvents:true;
+CONFIG.exitOnUncaughtException = CONFIG.hasOwnProperty('exitOnUncaughtException')?CONFIG.exitOnUncaughtException:true;
 global.CONFIG = CONFIG;
 log('booting up...');
 
@@ -52,11 +53,12 @@ function checkModules (event, user, message, reaction) {
 		}
 
 		//execute module
-		var result = module.func(message, user, reaction);
-		/*try { module.func(message, user); }
-		catch (error) {
-			console.log('i catched a error')
-		}*/
+		try {
+			var result = module.func(message, user, reaction);
+		} catch (err) {
+			log({module: module.name, error:err});
+			continue;
+		}
 
 		if (result == 'CONTINUE') continue;
 		store.set('lastTriggered.'+module.name, new Date());
@@ -83,7 +85,7 @@ class Module {
 		this.func = func;
 
 		//make sure required fields are there
-		if (!this.func || !this.event || !this.name) return log(this.name, 'module missing required fields');
+		if (!this.func || !this.event || !this.name) return log({module: this.name||'unnamed module', error: new Error('module missing required fields')});
 
 	    //allow user to pass just a regex filter for options
 	    if (options instanceof RegExp) options = {filter: options};
@@ -207,12 +209,10 @@ glob.sync('/modules/*.js', {root: __dirname}).forEach(filepath => {
 		require(filepath);
 	}
 	catch (err) {
-		log('\x1b[1m'+'\x1b[33m'+'['+file.toUpperCase()+']'+'\x1b[31m'+' ERROR:'+'\x1b[0m',err.message);
-
-		if (CONFIG.debug) console.log(err.stack);
+		log({module: file, error:err});
 	}
 
-	log('\x1b[1m'+'\x1b[37m'+'['+file.toUpperCase()+']'+'\x1b[0m','loaded');
+	log({module:file},'loaded');
 });
 
 //catches and logs error messages not caught by trycatch around require()
@@ -223,8 +223,9 @@ process.on('uncaughtException', function(err){
 	let filename = path.basename(firstLine,extension);
 
 	//log
-	log('\x1b[1m'+'\x1b[37m'+'['+filename.toUpperCase()+']'+'\x1b[31m'+' ERROR:'+'\x1b[0m',err.message);
-	if (CONFIG.debug) console.log(err.stack);
+	log({module: filename, error:err});
+	console.log('\n\n This error was produced by an uncaught exeption, the bot may be in an usable state so it\'s shutting down. To keep the bot running, you can either set exitOnUncaughtException to false in the config (not reccomended), or you can use a process manager to restart the bot when it crashes (such as PM2).');
+	if (CONFIG.exitOnUncaughtException) process.exit();
 });
 
 //when bot is connected

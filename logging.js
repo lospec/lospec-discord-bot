@@ -1,10 +1,38 @@
 function log () {
 	let args = Array.from(arguments);
 
-	let name = global.CONFIG?global.CONFIG.botName.toUpperCase():'LOSPEC BOT';
+	//create options, import from first argument if provided
+	let options = {};
+	if (typeof args[0] == 'object') {
+		options = args.shift();
+	}
 
-	args.unshift('\x1b[1m'+'\x1b[37m'+'['+name+']'+'\x1b[0m'); //bold + white + text + reset
+	//get bot name
+	options.botname = global.CONFIG?global.CONFIG.botName.toUpperCase():'LOSPEC BOT';
+
+	//create log message string
+	let message =
+				'\x1b[1m'+ //bold
+				'\x1b[37m'+	//white
+				'['+options.botname+']'; //bot name
+
+	//add module name
+	if (options.module) message += ' ['+options.module+']';
+
+	//add error message
+	if (options.error) message += '\x1b[31m'+' ERROR: '+'\x1b[0m'+options.error.message;
+
+	//reset formatting
+	message+=	'\x1b[0m';
+
+	//insert text at beginning of array
+	args.unshift(message);
+
+	//log it
 	console.log.apply(this,args);
+
+	//if debug is enabled and an error was passed, log the error stack
+	if (CONFIG.debug && options.error) console.log(options.error.stack);
 }
 
 global.log = log;
