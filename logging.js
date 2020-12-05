@@ -8,16 +8,16 @@ function log () {
 	}
 
 	//get bot name
-	options.botname = global.CONFIG?global.CONFIG.botName.toUpperCase():'LOSPEC BOT';
+	options.botname = global.CONFIG?global.CONFIG.botName:'LOSPEC BOT';
 
 	//create log message string
 	let message =
 				'\x1b[1m'+ //bold
 				'\x1b[37m'+	//white
-				'['+options.botname+']'; //bot name
+				'['+options.botname.toUpperCase()+']'; //bot name
 
 	//add module name
-	if (options.module) message += ' ['+options.module+']';
+	if (options.module) message += ' ['+options.module.toUpperCase()+']';
 
 	//add error message
 	if (options.error) message += '\x1b[31m'+' ERROR: '+'\x1b[0m'+options.error.message;
