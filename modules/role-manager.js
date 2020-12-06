@@ -15,11 +15,10 @@ new Module('role manager', 'react', {}, function (message,user,reaction) {
 
 	//if the reaction wasn't matched - remove it and exit
 	if (!matchedReaction) {
-		console.warn('\temoji',(reaction._emoji.id || reaction._emoji.name),'not matched');
 		//remove the reaction
 		reaction._emoji.reaction.remove(message.user)
-			.then(e=>console.log('\treaction removed: ',reaction._emoji.name,'['+reaction._emoji.id+']','by',user.username))
-			.catch(e=>console.log('\tfailed reaction removal',reaction._emoji.name,'['+reaction._emoji.id+']','by',user.username));
+			.then(e=>log({module: 'role manager'},'reaction removed: ',reaction._emoji.name,'['+reaction._emoji.id+']','by',user.username))
+			.catch(e=>log({module: 'role manager', error: new Error('failed reaction removal '+reaction._emoji.name+' ['+reaction._emoji.id+'] by'+user.username)}));
 
 		return;
 	}
@@ -29,10 +28,10 @@ new Module('role manager', 'react', {}, function (message,user,reaction) {
 		.then(guildMember=> {
 			//give user role base on matched emoji
 			guildMember.roles.add(matchedReaction.role)
-				.then(e=>console.log('\tgave',user.username,matchedReaction.name,'role'))
-				.catch(e=>console.log('\tmaybe failed to give',user.username,matchedReaction.name,'role'));
+				.then(e=>log({module: 'role manager'},'gave',user.username,matchedReaction.name,'role'))
+				.catch(e=>log({module: 'role manager', error: new Error('maybe failed to give '+user.username+' '+matchedReaction.name+'role')}));
 			})
-		.catch(d => console.log('failed to get guild member',d));
+		.catch(d => log({module: 'role manager', error: new Error('failed to get guild member')}));
 });
 
 
