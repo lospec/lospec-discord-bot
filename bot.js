@@ -19,14 +19,19 @@ const client = new Discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION']
 var modules = [];
 
 //when an event is triggered, search for a matching module and execute it
-function checkModules (event, user, message, reaction) {
+function checkModules (event, user, message, reaction, data) {
 
 	//ignore events from bots
 	if (user.bot) return;
 
+		console.log(event[0], message?message.channel.type:'');
+
     //print messages to console
-    if (CONFIG.logIncomingEvents)
-		console.log('  ',event[0].toUpperCase(),'#'+message.channel.name.toUpperCase(),user.username+':',reaction?reaction._emoji.name:message.content);
+    if (CONFIG.logIncomingEvents) {
+		if (event.includes('voice')) console.log('  ',event[0].toUpperCase(),user.username+':');
+		else if (event == 'dm') console.log('  ',event[0].toUpperCase(),user.username+':',reaction?reaction._emoji.name:message.content);
+		else console.log('  ',event[0].toUpperCase(),'#'+message.channel.name.toUpperCase(),user.username+':',reaction?reaction._emoji.name:message.content);
+    }
 
 	//loop through each defined module until a matching one is found
 	let foundMatch = false;
@@ -37,9 +42,9 @@ function checkModules (event, user, message, reaction) {
 		if (module.event != event) continue; //wrong event
 		if (module.channel != '*' && module.channel != message.channel.id && !module.channel.includes(message.channel.id)) continue; //wrong channel
 
-		if (module.permissions && !message.member.hasPermission(module.permissions)) continue; //message was from a bot
+		if (module.permissions && message.member && !message.member.hasPermission(module.permissions)) continue; //message was from a bot
 		if (module.pingBot && message.mentions.users.array().filter(u => u.id == client.user.id) < 1) continue; //bot was not pinged
-		if (!module.filter.test(message.content)) continue; //filter mismatch
+		if (message && !module.filter.test(message.content)) continue; //filter mismatch
 
 		//rate limit
 		if (module.rateLimit) {
@@ -54,7 +59,7 @@ function checkModules (event, user, message, reaction) {
 
 		//execute module
 		try {
-			var result = module.func(message, user, reaction);
+			var result = module.func(message, user, reaction || data);
 		} catch (err) {
 			log({module: module.name, error:err});
 			continue;
@@ -120,7 +125,10 @@ class Module {
 
 
 client.on('message', (message) => {
-	checkModules('message',message.author, message);
+	if (message.channel.type == 'dm')
+		checkModules('dm',message.author, message);
+	else
+		checkModules('message',message.author, message);
 });
 
 client.on('messageReactionAdd', (reaction, user) => {
@@ -129,6 +137,21 @@ client.on('messageReactionAdd', (reaction, user) => {
 
 client.on('messageReactionRemove', (reaction, user) => {
 	checkModules('unreact',user,reaction.message,reaction);
+});
+
+client.on('voiceStateUpdate', (oldState, newState) => {
+
+	//user left a channel
+	if (newState.channelID === null) checkModules('voiceLeave', newState.member.user, null, null, oldState);
+
+	//user joined a channel
+	else if (oldState.channelID === null) checkModules('voiceJoin', newState.member.user, null, null, newState);
+
+	//user moved from one channel to the other
+	else if (oldState.channelID !== newState.channelID) {
+		checkModules('voiceLeave', newState.member.user, null, null, oldState);
+		checkModules('voiceJoin', newState.member.user, null, null, newState);
+	}
 });
 
 ////////////////////////////////////////////////////////////////////////////////
