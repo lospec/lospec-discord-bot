@@ -30,17 +30,17 @@ new Module('poll', 'message', /^!poll/i, function (message) {
 	let title = 'POLL:';
 	//user put a ? and then a comma
 	if (options[0].endsWith('?')) {
-		title += ' '+options.shift();
+		title += ''+options.shift();
 	}
 	//user just put a ? and then the first option
 	else if (options[0].includes('?')) {
 		let titleSplit = options[0].split('?');
-		title += ' '+titleSplit[0]+'?';
+		title += ''+titleSplit[0]+'?';
 		options[0] = titleSplit[1];
 	}
 
 	//create poll message
-	let pollContent = options.map((o,i) => pollIndex[i]+' '+o).join('\n');
+	let pollContent = options.map((o,i) => pollIndex[i]+''+o).join('\n');
 	let embed = {
 		embed: {
 			description: pollContent,
