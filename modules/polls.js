@@ -36,7 +36,7 @@ new Module('poll', 'message', /^!poll/i, function (message) {
 	else if (options[0].includes('?')) {
 		let titleSplit = options[0].split('?');
 		title += ' '+titleSplit[0]+'?';
-		options[0] = titleSplit[1];
+		options[0] = titleSplit[1].trim();
 	}
 
 	//create poll message
