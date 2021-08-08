@@ -1,4 +1,4 @@
-if (!CONFIG.imageOnlyChannels) throw new Error('no imageOnlyChannels defined');
+if (!CONFIG.imageOnlyChannels) return;
 
 new Module('image only', 'message', {channel: CONFIG.imageOnlyChannels}, function (message) {
 
