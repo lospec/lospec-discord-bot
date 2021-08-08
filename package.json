@@ -11,5 +11,6 @@
     "data-store": "^4.0.3",
     "discord.js": "^13.0.1",
     "glob": "^7.1.6"
-  }
+  },
+  "license": "gpl-2.0"
 }
