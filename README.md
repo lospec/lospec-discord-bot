@@ -42,7 +42,7 @@ Make sure you have a discord set-up where you have admin permissions before foll
 6. Follow through the instructions in the web browser and add your bot to your development server.
 
 ### Running the bot
-To run the bot, access the project working directory in a terminal and run `npm run run`. 
+To run the bot, access the project working directory in a terminal and run `npm start`. 
 
 ## Modules
 
