@@ -8,7 +8,7 @@ const fs = require('fs');
 const phrases = fs.readFileSync(__dirname+'/../phrases.txt','utf-8').split('\n');
 setInterval(()=>{
 
-	if (!CONFIG.botChatChannel)	throw new Error('botChatChannel not defined');
+	if (!CONFIG.botChatChannel)	return;
 
 	//pick a random phrase
 	let check = Math.random();
