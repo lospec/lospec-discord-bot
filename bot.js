@@ -1,7 +1,8 @@
-require('./logging');
+const fs = require('fs');
 const path = require('path');
 const glob = require('glob');
 const Discord = require('discord.js');
+require('./logging');
 
 ////////////////////////////////////////////////////////////////////////////////
 //////// CONFIG ////////////////////////////////////////////////////////////////
@@ -23,7 +24,8 @@ if (!CONFIG.token || CONFIG.token == 'PASTE YOUR TOKEN HERE' || CONFIG.token == 
 		console.log(fs.readFileSync(__dirname+'/intro.txt','utf-8'));
 		
 	} catch (err) {
-		console.log("\n Oof, we've got a problem. I think you dont have the right permissions to read things in this folder. Try running this command:\n chmod -R 755 .");
+		console.log("\n Oof, we've got a problem. I think you dont have the right permissions to read things in this folder. Try running this command:\n chmod -R 755 .\nMore Info:\n\n");
+		console.error(err);
 	}
 
 	store.set('token', 'PASTE YOUR TOKEN HERE');
