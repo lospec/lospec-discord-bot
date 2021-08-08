@@ -1,6 +1,12 @@
 require('./logging');
+const path = require('path');
+const glob = require('glob');
+const Discord = require('discord.js');
 
-//load config
+////////////////////////////////////////////////////////////////////////////////
+//////// CONFIG ////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
 const Store = require('data-store');
 const store = new Store({ path: __dirname+'/CONFIG.json' });
 const CONFIG = Object.assign({},store.get('config'));
@@ -10,12 +16,30 @@ CONFIG.debug = CONFIG.hasOwnProperty('debug')?CONFIG.debug:true;
 CONFIG.logIncomingEvents = CONFIG.hasOwnProperty('logIncomingEvents')?CONFIG.logIncomingEvents:true;
 CONFIG.exitOnUncaughtException = CONFIG.hasOwnProperty('exitOnUncaughtException')?CONFIG.exitOnUncaughtException:true;
 global.CONFIG = CONFIG;
+
+//make sure token is configured
+if (!CONFIG.token || CONFIG.token == 'PASTE YOUR TOKEN HERE' || CONFIG.token == '') {
+	try {
+		console.log(fs.readFileSync(__dirname+'/intro.txt','utf-8'));
+		
+	} catch (err) {
+		console.log("\n Oof, we've got a problem. I think you dont have the right permissions to read things in this folder. Try running this command:\n chmod -R 755 .");
+	}
+
+	store.set('token', 'PASTE YOUR TOKEN HERE');
+
+	process.exit();
+}
+
 log('booting up...');
 
-const path = require('path');
-const glob = require('glob');
-const Discord = require('discord.js');
 const client = new Discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
+
+
+////////////////////////////////////////////////////////////////////////////////
+//////// MODULE PROCESSING /////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
 var modules = [];
 
 //when an event is triggered, search for a matching module and execute it
