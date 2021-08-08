@@ -9,7 +9,7 @@
   "author": "Lospec",
   "dependencies": {
     "data-store": "^4.0.3",
-    "discord.js": "^12.5.1",
+    "discord.js": "^13.0.1",
     "glob": "^7.1.6"
   }
 }
