@@ -20,6 +20,7 @@ global.CONFIG = CONFIG;
 
 //make sure token is configured
 if (!CONFIG.token || CONFIG.token == 'PASTE YOUR TOKEN HERE' || CONFIG.token == '') {
+	console.log('toke',CONFIG.token)
 	try {
 		console.log(fs.readFileSync(__dirname+'/intro.txt','utf-8'));
 		
@@ -28,7 +29,7 @@ if (!CONFIG.token || CONFIG.token == 'PASTE YOUR TOKEN HERE' || CONFIG.token == 
 		console.error(err);
 	}
 
-	store.set('token', 'PASTE YOUR TOKEN HERE');
+	store.set('config.token', 'PASTE YOUR TOKEN HERE');
 
 	process.exit();
 }
