@@ -2,7 +2,7 @@
 new Module('say', 'message', {filter: /^!say <#\d.+> .+/i, permissions: 'MANAGE_MESSAGES'}, function (message) {
 
 	if (message.author.id == CONFIG.adminId) console.log('good');
-	else throw new Error(message.author.username + 'tried to use the !say command...');
+	else throw new Error(message.author.username + ' tried to use the !say command...');
 
 	//get count from bot, limit to 10
 	let textToSend = message.content.split(' ');
