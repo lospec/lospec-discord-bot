@@ -36,8 +36,16 @@ if (!CONFIG.token || CONFIG.token == 'PASTE YOUR TOKEN HERE' || CONFIG.token == 
 
 log('booting up...');
 
-const client = new Discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
-
+//const client = new Discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
+const client = new Discord.Client({ intents: [
+	Discord.Intents.FLAGS.GUILDS, 
+	Discord.Intents.FLAGS.GUILD_BANS, 
+	Discord.Intents.FLAGS.GUILD_VOICE_STATES, 
+	Discord.Intents.FLAGS.GUILD_MESSAGES,
+	Discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+	Discord.Intents.FLAGS.DIRECT_MESSAGES,
+	Discord.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
+]});
 
 ////////////////////////////////////////////////////////////////////////////////
 //////// MODULE PROCESSING /////////////////////////////////////////////////////
@@ -69,8 +77,8 @@ function checkModules (event, user, message, reaction, data) {
 		if (module.event != event) continue; //wrong event
 		if (module.channel != '*' && module.channel != message.channel.id && !module.channel.includes(message.channel.id)) continue; //wrong channel
 
-		if (module.permissions && message.member && !message.member.hasPermission(module.permissions)) continue; //message was from a bot
-		if (module.pingBot && message.mentions.users.array().filter(u => u.id == client.user.id) < 1) continue; //bot was not pinged
+		if (module.permissions && message.member && !message.member.permissions.has(module.permissions)) continue; //message was from a bot
+		if (module.pingBot && [...message.mentions.users.values()].filter(u => u.id == client.user.id) < 1) continue; //bot was not pinged
 		if (message && !module.filter.test(message.content)) continue; //filter mismatch
 
 		//rate limit
@@ -103,7 +111,7 @@ function checkModules (event, user, message, reaction, data) {
     }
 
     //bot was pinged but not matched, react confused
-    if (!foundMatch && event=='message' && message.mentions.users.array().filter(u => u.id == client.user.id) > 0) {
+    if (!foundMatch && event=='message' && [...message.mentions.users.values()].filter(u => u.id == client.user.id) > 0) {
     	react(message,'hmm');
     }
 }
@@ -151,7 +159,7 @@ class Module {
 ////////////////////////////////////////////////////////////////////////////////
 
 
-client.on('message', (message) => {
+client.on('messageCreate', (message) => {
 	if (message.channel.type == 'dm')
 		checkModules('dm',message.author, message);
 	else
