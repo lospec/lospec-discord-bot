@@ -32,7 +32,7 @@ function log () {
 	console.log.apply(this,args);
 
 	//if debug is enabled and an error was passed, log the error stack
-	if (CONFIG.debug && options.error) console.log(options.error.stack);
+	if (CONFIG.debug && options.error) console.log(options.error);
 }
 
 global.log = log;
