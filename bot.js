@@ -71,12 +71,12 @@ function checkModules (event, user, message, reaction, data) {
 	//loop through each defined module until a matching one is found
 	let foundMatch = false;
     for (var i = 0; i < modules.length; i++) {
-        var module = modules[i];
+        let module = modules[i];
 
 		//continue searching if any of the properties don't match
+		if (module.command) continue; //should be a slash command instead
 		if (module.event != event) continue; //wrong event
 		if (module.channel != '*' && module.channel != message.channel.id && !module.channel.includes(message.channel.id)) continue; //wrong channel
-
 		if (module.permissions && message.member && !message.member.permissions.has(module.permissions)) continue; //message was from a bot
 		if (module.pingBot && [...message.mentions.users.values()].filter(u => u.id == client.user.id) < 1) continue; //bot was not pinged
 		if (message && !module.filter.test(message.content)) continue; //filter mismatch
@@ -116,6 +116,32 @@ function checkModules (event, user, message, reaction, data) {
     }
 }
 
+function checkSlashCommand(user, command, interaction) {
+	//console.log(interaction);
+
+	console.log('s', command);
+
+	//loop through modules to find matching command
+	for (let i = 0; i < modules.length; i++) {
+		let module = modules[i];
+
+		//command doesn't match, continue searching
+		if (!module.command) continue; 
+		if (module.command !== command) continue; 
+
+		//check if commands
+		if (module.channel != '*' && module.channel != interaction.channelId && !module.channel.includes(interaction.channelId)) continue; //wrong channel
+
+		//execute module
+		try {
+			module.func(interaction, user);
+		} catch (err) {
+			log({module: module.name, error:err});
+			continue;
+		}
+	}
+}
+
 class Module {
 	constructor (name, event, options, func) {
 		//defaults
@@ -138,6 +164,13 @@ class Module {
 	    this.rateLimit = options.rateLimit;
 	    this.overLimit = options.overLimit || function () {};
 	    this.permissions = options.permissions;
+	    this.command = options.command || false;
+		if (this.command) this.commandOptions = {
+			name: this.command,
+			description: options.description || this.command,
+			options: options.options
+		}
+	    
 
 		//show warning if the g flag was added to filter, as it breaks .test()
 		if (this.filter.flags.includes('g'))
@@ -172,6 +205,12 @@ client.on('messageReactionAdd', (reaction, user) => {
 
 client.on('messageReactionRemove', (reaction, user) => {
 	checkModules('unreact',user,reaction.message,reaction);
+});
+
+// slash commands
+client.on('interactionCreate', (interaction, user) => {
+	if (!interaction.isCommand()) return;
+	checkSlashCommand(user,interaction.commandName,interaction);
 });
 
 client.on('voiceStateUpdate', (oldState, newState) => {
@@ -275,10 +314,13 @@ glob.sync('/modules/*.js', {root: __dirname}).forEach(filepath => {
 
 //catches and logs error messages not caught by trycatch around require()
 process.on('uncaughtException', function(err){
-	let logLineDetails = ((err.stack).split("at ")[1]).trim();
-	let firstLine = logLineDetails = /\((.+):\d+:\d+\)/gi.exec(logLineDetails)[1];
-	let extension = path.extname(firstLine);
-	let filename = path.basename(firstLine,extension);
+	let filename = 'unknown file';
+	try {
+		let logLineDetails = ((err.stack).split("at ")[1]).trim();
+		let firstLine = logLineDetails = /\((.+):\d+:\d+\)/gi.exec(logLineDetails)[1];
+		let extension = path.extname(firstLine);
+		filename = path.basename(firstLine,extension);
+	} catch (e) {}
 
 	//log
 	log({module: filename, error:err});
@@ -298,6 +340,20 @@ client.once('ready', () => {
 	}
 
 	log('connected to',guild.name,'as',client.user.username);
+
+	//loop through modules
+	modules.forEach(module => {
+		if (!module.command) return;
+		if (module.command !== module.command.toLowerCase()) return log({module: module.name}, 'command "'+module.command+'" must be lowercase');
+
+		//clear all commands
+		global.guild.commands.set([]);
+
+		//add command
+		global.guild.commands.create(module.commandOptions).then(e=>log('command added: /'+module.command));
+	});
+
+
 });
 
 //log bot in
