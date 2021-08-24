@@ -5,7 +5,7 @@ const COMMAND = {
 	description: 'Fetch a link to a palette hosted on Lospec', 
 	options: [{
 		name: 'slug',
-		type: 'STRING',
+		type: 3,
 		description: 'Palette URL slug (the part of the url after /palette-list/)',
 		required: true
 	}]
@@ -31,7 +31,7 @@ new Module('palette poster', 'message', COMMAND, async (interaction) => {
 
 			//interaction.editReply('done'); return;
 			
-			//send palette embed
+			//send palette embed 
 			interaction.editReply({embeds: [{
 				title: data.name + ' by ' + data.author,
 				description: 'https://lospec.com/palette-list/'+ paletteSlug ,

@@ -2,6 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const glob = require('glob');
 const Discord = require('discord.js');
+const { REST } = require('@discordjs/rest');
+const { Routes } = require('discord-api-types/v9');
+const { SlashCommandBuilder } = require('@discordjs/builders');
 require('./logging');
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -40,6 +43,7 @@ log('booting up...');
 const client = new Discord.Client({ intents: [
 	Discord.Intents.FLAGS.GUILDS, 
 	Discord.Intents.FLAGS.GUILD_BANS, 
+	Discord.Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS, 
 	Discord.Intents.FLAGS.GUILD_VOICE_STATES, 
 	Discord.Intents.FLAGS.GUILD_MESSAGES,
 	Discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
@@ -164,12 +168,12 @@ class Module {
 	    this.rateLimit = options.rateLimit;
 	    this.overLimit = options.overLimit || function () {};
 	    this.permissions = options.permissions;
-	    this.command = options.command || false;
-		if (this.command) this.commandOptions = {
-			name: this.command,
+		this.command = options.command ? {
+			name: options.command,
+			type: 1,
 			description: options.description || this.command,
-			options: options.options
-		}
+			options: options.options || [] 
+		} : false;
 	    
 
 		//show warning if the g flag was added to filter, as it breaks .test()
@@ -200,6 +204,7 @@ client.on('messageCreate', (message) => {
 });
 
 client.on('messageReactionAdd', (reaction, user) => {
+	console.log('react')
 	checkModules('react',user,reaction.message,reaction);
 });
 
@@ -341,20 +346,43 @@ client.once('ready', () => {
 
 	log('connected to',guild.name,'as',client.user.username);
 
-	//loop through modules
-	modules.forEach(module => {
-		if (!module.command) return;
-		if (module.command !== module.command.toLowerCase()) return log({module: module.name}, 'command "'+module.command+'" must be lowercase');
+	console.log()
 
-		//clear all commands
-		global.guild.commands.set([]);
-
-		//add command
-		global.guild.commands.create(module.commandOptions).then(e=>log('command added: /'+module.command));
-	});
-
-
+	loadSlashCommands(client.user.id, client.guilds.cache.first().id)
 });
+
+////////////////////////////////////////////////////////////////////////////////
+//////// COMMANDS //////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+const rest = new REST({ version: '9' }).setToken(CONFIG.token);
+
+async function loadSlashCommands (clientId, guildId) {
+	try {
+		console.log('Started refreshing application (/) commands.');
+
+		let commandsList = []; 
+
+		//loop through modules
+		modules.forEach(module => {  
+			if (!module.command) return;
+			if (module.command.name !== module.command.name.toLowerCase()) return log({module: module.name}, 'command "'+module.command.name+'" must be lowercase');
+
+			commandsList.push(module.command);
+
+			//add command
+			//global.guild.commands.create(module.commandOptions).then(e=>log('command added: /'+module.command));
+		});
+
+		//request commands update 
+		console.log('commands', commandsList)
+		await rest.put(Routes.applicationGuildCommands(clientId, guildId), {body: commandsList});
+		console.log('Successfully reloaded application (/) commands.');
+
+	} catch (error) {console.error(error);}
+}
+
+
 
 //log bot in
 client.login(CONFIG.token);
