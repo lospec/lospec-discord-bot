@@ -20,6 +20,7 @@ CONFIG.debug = CONFIG.hasOwnProperty('debug')?CONFIG.debug:true;
 CONFIG.logIncomingEvents = CONFIG.hasOwnProperty('logIncomingEvents')?CONFIG.logIncomingEvents:true;
 CONFIG.exitOnUncaughtException = CONFIG.hasOwnProperty('exitOnUncaughtException')?CONFIG.exitOnUncaughtException:true;
 global.CONFIG = CONFIG;
+global.CONFIGSTORE = store;
 
 //make sure token is configured
 if (!CONFIG.token || CONFIG.token == 'PASTE YOUR TOKEN HERE' || CONFIG.token == '') {
