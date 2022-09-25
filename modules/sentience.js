@@ -1,7 +1,4 @@
-new Module('sentient', 'message', /^!test/i, function (message) {
-	react(message,['ayy','yee']);
-});
-
+const store = require('data-store');
 const fs = require('fs');
 
 //say a random phrase at a random interval
@@ -10,23 +7,28 @@ setInterval(()=>{
 
 	if (!CONFIG.botChatChannel)	return;
 
-	//pick a random phrase
+	let randomItem = '';
+
 	let check = Math.random();
 	let chance = CONFIG.botChatChance || 0.001;
 	if (check > chance) return;
-	let randomItem = pickRandom(phrases);
+	randomItem = pickRandom(phrases);
+	
+	console.log('sending bot chat to ',CONFIG.botChatChannel);
 
 	//send it
 	client.channels.fetch(CONFIG.botChatChannel)
 		.then(channel => channel.send(randomItem))
-		.catch(e=>{throw new Error('failed to fetch botChatChannel')});
-
+		//.catch(e=>{throw new Error('failed to fetch botChatChannel')});
+		.catch(e=>{console.error('failed to fetch bot channel',e)});
 }, 1000 * 5);
+
 
 //dont say vibing.
 new Module('vibing', 'message', /\bv\s*[i1!|]\s*b\s*[i1!|]\s*n/i, function (message) {
 	react(message, 'mad');
 });
+
 
 new Module('pineapplepizza', 'message', /^(?=.*?(pineapple))(?=.*?(pizza))/i, function (message) {
 	react(message, 'mad');
@@ -45,8 +47,20 @@ new Module('mean', 'message', {filter: /\b(bad|badbot|stupid|ugly|dumb|idiot|mor
 	react(message,pickRandom(['coolsob','sob~1','miffed']));
 });
 
+new Module('nft reply', 'message', {filter: /NFT/i, pingBot: true}, function (message) {
+	message.reply({ content: 'no freaking thanks', allowedMentions: { repliedUser: true }});
+});
+
+
+//dont say vibing.
+new Module('nft say', 'message', /NFT/i, function (message) {
+	react(message, 'mad');
+});
+
 new Module('sentient', 'message', {filter: /\b(real|alive|conscious|aware|sentient)\b/i, pingBot: true}, function (message) {
 	react(message,'think');
 });
+
+
 
 /*global Module, CONFIG, client, log, error, send, react, sendEmoji, pickRandom, messageHasBotPing, isMod */

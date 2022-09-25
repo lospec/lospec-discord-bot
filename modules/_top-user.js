@@ -5,16 +5,16 @@ const topUserRoleId = '839480902563659836';
 const MINACTIVEDAYS = 4;
 const MINMESSAGES = 5;
 const CHECKFREQUENCY = 1000*60*30; //30 minutes
-const REFRESHFREQUENCY = 1000*60*60*24; //1 day
+const REFRESHFREQUENCY = 1000*60*60*24; //1 day 
 
 setInterval(() => {
-	let lastTrigger = CONFIGstore.get('lastTriggered.topUserRecount');
+	let lastTrigger = CONFIGSTORE.get('lastTriggered.topUserRecount');
 
 	//exit if bot was triggered within the refresh frequency
 	if (lastTrigger && new Date() - new Date(lastTrigger) < REFRESHFREQUENCY) return;
 
 	//mark the time it was checked
-	CONFIGstore.set('lastTriggered.topUserRecount', new Date());
+	CONFIGSTORE.set('lastTriggered.topUserRecount', new Date());
 
 	refreshActiveUsers();
 

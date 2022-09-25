@@ -13,6 +13,9 @@ else  {
 
 		console.log('posted in thread only channel', message.interaction);
 
+		//ignore mods
+		if (message.member.bot || message.member.permissions.has('MANAGE_MESSAGES')) return; //message was from a mod or bot, dont make it a thread
+
 		message.startThread({
 			name: title(message.author.username, true) + ' ' + title(message.channel.name),
 			autoArchiveDuration: 60 * 24 ,//minutes

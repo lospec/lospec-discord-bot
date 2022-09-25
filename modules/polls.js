@@ -42,14 +42,14 @@ new Module('poll', 'message', /^!poll/i, function (message) {
 	//create poll message
 	let pollContent = options.map((o,i) => pollIndex[i]+' '+o).join('\n');
 	let embed = {
-		embed: {
+		embeds: [{
 			description: pollContent,
 			title: title,
 			author: {
 		      name: message.author.username,
 		      icon_url: 'https://cdn.discordapp.com/avatars/'+message.author.id+'/'+message.author.avatar+'.png'
 		    },
-	    },
+	    }],
 	};
 
     //send message

@@ -9,7 +9,7 @@ const COMMAND = {
 	options: [{
 		name: 'rule',
 		type: 4,
-		description: 'Rule Number (1 - 8)',
+		description: 'Rule Number (1 - '+Object.keys(rules).length+')',
 		required: true
 	}]
 };
@@ -24,9 +24,9 @@ new Module('rules display', 'message', COMMAND, async (interaction) => {
 
 	//exit if rule number invalid
 	if (ruleNumber < 1 || ruleNumber > ruleTitle.length) return 'CONTINUE';
-
+	
 	//send embed containing rule
-	message.channel.send({embeds: [{
+	interaction.reply({embeds: [{
 		title: 'RULE #'+ruleNumber+': '+ruleTitle[ruleNumber-1].toUpperCase(),
 		description: ruleValue[ruleNumber-1]
 	}]});

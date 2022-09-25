@@ -1,11 +1,11 @@
 {
   "name": "lospec-bot-discord",
-  "version": "1.0.0",
+  "version": "4.0.0",
   "description": "",
   "main": "bot.js",
   "scripts": {
     "start": "node bot.js",
-	"profile": "node --prof bot.js"
+    "profile": "node --prof bot.js"
   },
   "author": "Lospec",
   "dependencies": {
@@ -14,7 +14,9 @@
     "discord-api-types": "^0.22.0",
     "discord.js": "^13.0.1",
     "glob": "^7.1.6",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^2.6.1",
+    "node-time-ago": "^1.0.0",
+    "youtube-mp3-downloader": "^0.7.10"
   },
   "license": "gpl-2.0"
 }

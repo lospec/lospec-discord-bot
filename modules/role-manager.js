@@ -36,6 +36,7 @@ new Module('role manager', 'react', {}, function (message,user,reaction) {
 
 
 new Module('role manager', 'unreact', {}, function (message,user,reaction) {
+	if (!message) return; 
 	if (!reaction) throw new Error('reaction is null');
 
 	let ROLEMANAGERS = roleManagerData.get();

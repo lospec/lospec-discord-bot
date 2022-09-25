@@ -41,13 +41,14 @@ if (!CONFIG.token || CONFIG.token == 'PASTE YOUR TOKEN HERE' || CONFIG.token == 
 log('booting up...');
 
 //const client = new Discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
-const client = new Discord.Client({ intents: [
+const client = new Discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'], intents: [
 	Discord.Intents.FLAGS.GUILDS, 
 	Discord.Intents.FLAGS.GUILD_BANS, 
 	Discord.Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS, 
 	Discord.Intents.FLAGS.GUILD_VOICE_STATES, 
 	Discord.Intents.FLAGS.GUILD_MESSAGES,
 	Discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+	Discord.Intents.FLAGS.GUILD_MEMBERS,
 	Discord.Intents.FLAGS.DIRECT_MESSAGES,
 	Discord.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
 ]});
@@ -70,7 +71,7 @@ function checkModules (event, user, message, reaction, data) {
     if (CONFIG.logIncomingEvents) {
 		if (event.includes('voice')) console.log('  ',event[0].toUpperCase(),user.username+':');
 		else if (event == 'dm') console.log('  ',event[0].toUpperCase(),user.username+':',reaction?reaction._emoji.name:message.content);
-		else console.log('  ',event[0].toUpperCase(),'#'+message.channel.name.toUpperCase(),user.username+':',reaction?reaction._emoji.name:message.content);
+		else if (message && message?.channel) console.log('  ',event[0].toUpperCase(),'#'+message.channel.name.toUpperCase(),user.username+':',reaction?reaction._emoji.name:message.content);
     }
 
 	//loop through each defined module until a matching one is found
@@ -97,10 +98,13 @@ function checkModules (event, user, message, reaction, data) {
 			}
 		}
 
+		console.log('\t\tEXECUTING MODULE:',module.name)
+
 		//execute module
 		try {
 			var result = module.func(message, user, reaction || data);
 		} catch (err) {
+			console.error(err);
 			log({module: module.name, error:err});
 			continue;
 		}
@@ -129,10 +133,10 @@ function checkSlashCommand(user, command, interaction) {
 	//loop through modules to find matching command
 	for (let i = 0; i < modules.length; i++) {
 		let module = modules[i];
-
+	
 		//command doesn't match, continue searching
 		if (!module.command) continue; 
-		if (module.command !== command) continue; 
+		if (module.command.name !== command) continue; 
 
 		//check if commands
 		if (module.channel != '*' && module.channel != interaction.channelId && !module.channel.includes(interaction.channelId)) continue; //wrong channel
@@ -171,7 +175,7 @@ class Module {
 	    this.permissions = options.permissions;
 		this.command = options.command ? {
 			name: options.command,
-			type: 1,
+			type: options.commandType || 1,
 			description: options.description || this.command,
 			options: options.options || [] 
 		} : false;
@@ -213,6 +217,11 @@ client.on('messageReactionRemove', (reaction, user) => {
 	checkModules('unreact',user,reaction.message,reaction);
 });
 
+client.on('guildMemberAdd', (guildMember) => {
+	console.log('guildMemberAdd',guildMember.user);
+	checkModules('join',guildMember.user);
+});
+
 // slash commands
 client.on('interactionCreate', (interaction, user) => {
 	if (!interaction.isCommand()) return;
@@ -240,7 +249,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 
 //send a message
 function send(message, text) {
-	message.channel.send(text);
+	message.channel.send(String(text));
 }
 
 //add a reaction to a message
@@ -295,6 +304,7 @@ global.react = react;
 global.sendEmoji = sendEmoji;
 global.pickRandom = pickRandom;
 global.client = client;
+global.Discord = Discord;
 
 
 
@@ -349,7 +359,7 @@ client.once('ready', () => {
 
 	console.log()
 
-	loadSlashCommands(client.user.id, client.guilds.cache.first().id)
+	loadSlashCommands(client.user.id);
 });
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -358,7 +368,7 @@ client.once('ready', () => {
 
 const rest = new REST({ version: '9' }).setToken(CONFIG.token);
 
-async function loadSlashCommands (clientId, guildId) {
+async function loadSlashCommands (clientId) {
 	try {
 		console.log('Started refreshing application (/) commands.');
 
@@ -377,7 +387,8 @@ async function loadSlashCommands (clientId, guildId) {
 
 		//request commands update 
 		console.log('commands', commandsList)
-		await rest.put(Routes.applicationGuildCommands(clientId, guildId), {body: commandsList});
+		//await rest.put(Routes.applicationCommands(clientId), {body: commandsList});
+		await rest.put(Routes.applicationGuildCommands(clientId,store.get('config.guildId')), {body: commandsList} );
 		console.log('Successfully reloaded application (/) commands.');
 
 	} catch (error) {console.error(error);}
