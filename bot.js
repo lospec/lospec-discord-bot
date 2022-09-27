@@ -179,6 +179,7 @@ class Module {
 			description: options.description || this.command,
 			options: options.options || [] 
 		} : false;
+		if (options.default_member_permissions) this.command.default_member_permissions = options.default_member_permissions;
 	    
 
 		//show warning if the g flag was added to filter, as it breaks .test()
