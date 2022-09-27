@@ -95,6 +95,8 @@ new Module('award selected', 'message', SELECTED_AWARD, async (interaction) => {
 		let awardedMessageId = interaction.message.content;
 		let awardedMessage = await interaction.message.channel.messages.fetch(awardedMessageId);
 
+		await Bank.adjustBalance(awardedMessage.author.id, award.defaultAmount, 'You were given the '+awardId+' award in '+interaction.message.channel.name+'!')
+
 		//record award
 		AwardData.set(interaction.message.id, {
 			userId: awardedMessage.author.id,
@@ -104,8 +106,7 @@ new Module('award selected', 'message', SELECTED_AWARD, async (interaction) => {
 			messageId: awardedMessageId,
 			channelName: interaction.message.channel.name
 		});
-
-		await Bank.adjustBalance(awardedMessage.author.id, award.defaultAmount, 'You were given the '+awardId+' award in '+interaction.message.channel.name+'!');
+		
 		let awardEmoji = '<:'+ (award.emojiName||'win') +':' + (award.emojiId||'740028074053337148') +'>';
 		await interaction.message.channel.send({content: '<@'+awardedMessage.author.id+'>' + ' was given the **'+awardId+'** award and Ᵽ'+award.defaultAmount+'!\n '+awardEmoji});
 
@@ -148,3 +149,17 @@ new Module('add new award', 'user', ADD_AWARD_COMMAND, async (interaction) => {
 });
 
 
+//████████████████████████████████████████████████████████████████████████████████
+//████████████████████████████████ award selected ████████████████████████████████
+//████████████████████████████████████████████████████████████████████████████████
+
+Bank.on('bank-account-opened', (userId)=> {
+	let allAwards = AwardData.get();
+
+	let awardsForThisUser = Object.values(allAwards)
+		.filter(a => a.userId == userId)
+		.map(a => a.prize)
+		.reduce((a,b) => a+b, 0);
+
+	Bank.adjustBalance(userId, awardsForThisUser, 'Unclaimed award money')
+});

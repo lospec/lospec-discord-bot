@@ -3,6 +3,9 @@ const store = require('data-store');
 const BankConfig = new store({ path: __dirname+'/../config/bank.json' });
 const BankAccounts = new store({ path: __dirname+'/../data/bank-accounts.json' });
 const BankInterest = new store({ path: __dirname+'/../data/bank-interest.json' });
+const events = require('events');
+const BankEvents =  new events.EventEmitter(); 
+module.exports = BankEvents;
 
 //id of user who can give out money freely
 const BANKADMINISTRATOR = BankConfig.get('adminId');
@@ -28,6 +31,7 @@ new Module('bank open', 'message', OPEN, async (interaction) => {
     //open account
     BankAccounts.set(interaction.user.id,1);
     interaction.reply({ content: 'Thank you for opening an account with the Lozpekistan National Bank! We have given you a Ᵽ1 free!', ephemeral: true });
+	BankEvents.emit('bank-account-opened',interaction.user.id);
 
 	log(interaction.user.toString(),'opened an account');
 });
@@ -316,16 +320,18 @@ bankAPI.listen(4420, 'localhost', () => {console.log(`Bank API listening on port
 module.exports.getBalance = async function getBalance (userId) {
 	let account = BankAccounts.get(userId);
 	if (account == undefined) throw 'account not found';
+	log('<@'+userId+'>','checked their balance');
 	return account.balance;
 }
 
 module.exports.adjustBalance = async function adjustBalance (userId, amount, memo) {
 	let balance = BankAccounts.get(userId);
-	if (balance == undefined) throw 'account not found';
+	if (balance == undefined) return false;
 	if (!amount) throw 'invalid amount';
 	let payee = await client.users.fetch(userId, {force: true});
 
 	payee.send({content: 'Hello, this is a message from Lozpekistan National Bank:', embeds:[{description:"` Ᵽ"+amount+" ` has been transferred to your account. \nReason: ` "+ memo+" ` \n Your new balance is ` Ᵽ"+(balance + amount)+" ` \n\n Have a nice day!"}]});
+	log('transferred Ᵽ',amount,'to',payee.toString(),'for `'+memo+'`');
 
 	BankAccounts.set(userId, balance + amount);
 	return BankAccounts.get(userId);
