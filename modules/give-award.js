@@ -4,9 +4,9 @@ const Bank = require('./bank.js');
 const AwardConfig = new store({ path: __dirname+'/../config/awards.json' });
 const AwardData = new store({ path: __dirname+'/../data/awards.json' });
 
-function getAwardsListChoices () {
+function getAwardsListChoices (nameName = 'label') {
 	let choices = Object.entries(AwardConfig.get('awards')||[]).map(a => ({
-		label: a[0]+' ('+a[1].defaultAmount+'Ᵽ)' ,
+		[nameName]: a[0]+' ('+a[1].defaultAmount+'Ᵽ)' ,
 		value: a[0],
 		emoji: {
 			name: a[1].emojiName || 'win',
@@ -25,24 +25,6 @@ function getAwardsListChoices () {
 
 }
 
-const AWARD_COMMAND = {
-	command: 'give-award', 
-	description: 'give an award to this player', 
-	default_member_permissions: "0",
-	options: [{
-		name: 'name',
-		type: 3,
-		description: 'choose which award to give',
-		required: true,
-		choices: getAwardsListChoices,
-	},
-	{
-		name: 'amount',
-		type: 4,
-		description: 'The amount to give to the player (if different than the default)',
-	}]
-};
-
 //████████████████████████████████████████████████████████████████████████████████
 //████████████████████████████████ right click  ██████████████████████████████████
 //████████████████████████████████████████████████████████████████████████████████
@@ -52,15 +34,6 @@ const SHOW_AWARD_SELECTION = {
 	default_member_permissions: "0",
 	commandType: 3
 };
-
-console.log(Object.entries(AwardConfig.get('awards')||[]).map(a => ({
-	label: a[0]+' ('+a[1].defaultAmount+'Ᵽ)' ,
-	value: a[0],
-	emoji: {
-		name: a[1].emojiName || 'win',
-		id: a[1].emojiId || '740028074053337148'
-	}
-})));
 
 new Module('show award selection', 'message', SHOW_AWARD_SELECTION, async (interaction) => {
 	interaction.reply({content: interaction.targetId, ephemeral: true, "components": [
@@ -118,6 +91,41 @@ new Module('award selected', 'message', SELECTED_AWARD, async (interaction) => {
 
 
 //████████████████████████████████████████████████████████████████████████████████
+//████████████████████████████████ Award All Pinned ██████████████████████████████
+//████████████████████████████████████████████████████████████████████████████████
+
+
+const AWARD_ALL_PINNED_COMMAND = {
+	command: 'award-all-pins', 
+	description: 'give an award to every member with a pinned message in this channel/thread', 
+	default_member_permissions: "0",
+	options: [{
+		name: 'award-name',
+		type: 3,
+		description: 'choose which award to give',
+		required: true,
+		choices: getAwardsListChoices('name'),
+	}]
+};
+
+new Module('award all pinned', 'message', AWARD_ALL_PINNED_COMMAND, async (interaction) => {
+	let awardId = interaction.options.getString('award-name');
+	let award = AwardConfig.get('awards.'+awardId);
+
+	let pinnedMessages = await interaction.channel.messages.fetchPinned();
+	let authors = pinnedMessages.map(m => m.author.id)
+		.filter((author,i,array)=>array.indexOf(author) == i);
+
+	if (authors.length == 0) return interaction.reply({content: '0 pins were found', ephemeral: true });
+
+	authors.forEach(async author => {
+		await Bank.adjustBalance(author, award.defaultAmount, 'You were given the '+awardId+' award in '+interaction.channel.name+'!')
+	});
+
+	interaction.reply({content: authors.map(a=>'<@'+a+'>').join(', ') + ' were given the **'+awardId+'** award and Ᵽ'+award.defaultAmount+'!', ephemeral: true });
+});
+
+//████████████████████████████████████████████████████████████████████████████████
 //████████████████████████████████ ADD AWARDS ████████████████████████████████████
 //████████████████████████████████████████████████████████████████████████████████
 
@@ -150,7 +158,7 @@ new Module('add new award', 'user', ADD_AWARD_COMMAND, async (interaction) => {
 
 
 //████████████████████████████████████████████████████████████████████████████████
-//████████████████████████████████ award selected ████████████████████████████████
+//████████████████████████████████ Claim Unclaimed Awards ████████████████████████
 //████████████████████████████████████████████████████████████████████████████████
 
 Bank.on('bank-account-opened', (userId)=> {
