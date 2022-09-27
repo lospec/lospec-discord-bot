@@ -277,3 +277,46 @@ function checkRichestPersonRole (guild) {
 		
 }
 
+//BANK API
+
+const express = require('express');
+let bankAPI = express();
+bankAPI.use(express.json());
+
+bankAPI.use((req, res, next)=> {
+	console.log('BANK API REQUEST |', req.method+' '+req.originalUrl, res.statusCode);
+	next();
+});
+
+bankAPI.get('/balance/:userId', function(req, res, next) {
+	let account = BankAccounts.get(req.params.userId);
+	if (account == undefined) return res.sendStatus(404);
+	res.json(account.balance);
+});
+
+bankAPI.post('/balance/:userId', function(req, res, next) {
+	let account = BankAccounts.get(req.params.userId);
+	if (account == undefined) return res.sendStatus(404);
+	let amount = parseInt(req.body.amount);
+	if (amount == NaN) return res.sendStatus(400);
+	BankAccounts.set(req.params.userId+'.balance', account.balance + amount);
+	res.json(BankAccounts.get(req.params.userId).balance);
+});
+
+bankAPI.put('/balance/:userId', function(req, res, next) {
+	let account = BankAccounts.get(req.params.userId);
+	if (account == undefined) return res.sendStatus(404);
+	let amount = parseInt(req.body.amount);
+	if (amount == NaN) return res.sendStatus(400);
+	BankAccounts.set(req.params.userId+'.balance', amount);
+	res.json(BankAccounts.get(req.params.userId).balance);
+});
+
+bankAPI.use((req, res, next)=> {
+	return res.sendStatus(404);
+});
+
+bankAPI.listen(4420, () => {
+	console.log(`Bank API listening on port 4420`);
+});
+
