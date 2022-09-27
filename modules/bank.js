@@ -288,13 +288,17 @@ bankAPI.use((req, res, next)=> {
 	next();
 });
 
-bankAPI.get('/balance/:userId', function(req, res, next) {
+bankAPI.get('/balance', function(req, res) {
+	res.json(BankAccounts.get());
+});
+
+bankAPI.get('/balance/:userId', function(req, res) {
 	let account = BankAccounts.get(req.params.userId);
 	if (account == undefined) return res.sendStatus(404);
 	res.json(account.balance);
 });
 
-bankAPI.post('/balance/:userId', function(req, res, next) {
+bankAPI.post('/balance/:userId', function(req, res) {
 	let account = BankAccounts.get(req.params.userId);
 	if (account == undefined) return res.sendStatus(404);
 	let amount = parseInt(req.body.amount);
@@ -303,7 +307,7 @@ bankAPI.post('/balance/:userId', function(req, res, next) {
 	res.json(BankAccounts.get(req.params.userId).balance);
 });
 
-bankAPI.put('/balance/:userId', function(req, res, next) {
+bankAPI.put('/balance/:userId', function(req, res) {
 	let account = BankAccounts.get(req.params.userId);
 	let amount = parseInt(req.body.amount);
 	if (amount == NaN) return res.sendStatus(400);
@@ -323,11 +327,6 @@ bankAPI.put('/balance/:userId', function(req, res, next) {
 	} 
 });
 
-bankAPI.use((req, res, next)=> {
-	return res.sendStatus(404);
-});
-
-bankAPI.listen(4420, () => {
-	console.log(`Bank API listening on port 4420`);
-});
+bankAPI.use((req, res)=> {return res.sendStatus(404);});
+bankAPI.listen(4420, () => {console.log(`Bank API listening on port 4420`);});
 
