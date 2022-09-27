@@ -1,11 +1,13 @@
 const fs = require('fs');
 const store = require('data-store');
-const BankAccounts = new store({ path: __dirname+'/../config/bank-accounts.json' });
+const BankConfig = new store({ path: __dirname+'/../config/bank.json' });
+const BankAccounts = new store({ path: __dirname+'/../data/bank-accounts.json' });
+const BankInterest = new store({ path: __dirname+'/../data/bank-interest.json' });
 
 //id of user who can give out money freely
-const BANKADMINISTRATOR = '354968653260783618';
-const BANKLOGCHANNEL = '954077494661775370';
-const RICHESTPERSONROLE = '954089337161666683';
+const BANKADMINISTRATOR = BankConfig.get('adminId');
+const BANKLOGCHANNEL = BankConfig.get('logChannelId');
+const RICHESTPERSONROLE = BankConfig.get('richestPersonRoleId');
 
 const NOACCOUNT = 'We\'re sorry, but you don\'t seem to have an open account with us. Please contact customer service.';
 
@@ -24,7 +26,7 @@ new Module('bank open', 'message', OPEN, async (interaction) => {
       return interaction.reply({ content: 'You already have an account open with us!', ephemeral: true });
     
     //open account
-    BankAccounts.set(interaction.user.id,{balance: 1, username: interaction.user.username, lastInterest: 0});
+    BankAccounts.set(interaction.user.id,1);
     interaction.reply({ content: 'Thank you for opening an account with the Lozpekistan National Bank! We have given you a Ᵽ1 free!', ephemeral: true });
 
 	log(interaction.user.toString(),'opened an account');
@@ -41,14 +43,11 @@ const INTEREST = {
 };
 
 new Module('bank balance', 'message', INTEREST, async (interaction) => {
-    //user doesnt has account
-    if (typeof BankAccounts.get(interaction.user.id) == 'undefined') return interaction.reply({ content: NOACCOUNT, ephemeral: true });
-    
-    //get account
-    let account = BankAccounts.get(interaction.user.id);
+    let balance = BankAccounts.get(interaction.user.id);
+    if (balance == undefined) return interaction.reply({ content: NOACCOUNT, ephemeral: true });
 
     //get account balance
-    interaction.reply({ content: 'Your current balance: `Ᵽ'+account.balance+'`.', ephemeral: true });
+    interaction.reply({ content: 'Your current balance: `Ᵽ'+balance+'`.', ephemeral: true });
 	log(interaction.user.toString(),'checked their balance');
 });
 
@@ -66,31 +65,24 @@ new Module('bank interest', 'message', BALANCE, async (interaction) => {
     //user doesnt has account
     if (typeof BankAccounts.get(interaction.user.id) == 'undefined') return interaction.reply({ content: NOACCOUNT, ephemeral: true });
     
-    //get account
-    let account = BankAccounts.get(interaction.user.id);
-
-	
-	//calculate interest rate
+    let balance = BankAccounts.get(interaction.user.id);
 	let interestRate = getInterestLevel(interaction).rate;
-	
-	//calculate interest amount
-	let interestAmount = Math.max(1, Math.round(account.balance * interestRate));
-	
-	    let interestRateInfo = 'Interest Rate Class: `  '+getInterestLevel(interaction).name+'  ('+(interestRate*100)+'%)  `';
+	let interestAmount = Math.max(1, Math.round(balance * interestRate));
+	let interestRateInfo = 'Interest Rate Class: `  '+getInterestLevel(interaction).name+'  ('+(interestRate*100)+'%)  `';
 		
 	//figure out how long ago the user last collected interest
-	if (datesAreOnSameDay(new Date(), new Date(account.lastInterest))) {
+	if (datesAreOnSameDay(new Date(), new Date(BankInterest.get(interaction.user.id)||0))) {
 		console.log('dates same');
 		return interaction.reply({ content: 'You have already collected your interest today! Please come back tomorrow.\n '+interestRateInfo, ephemeral: true });
 	} else console.log('dates not same');
 	
 	//update account
-	account.balance += interestAmount;
-	account.lastInterest = new Date();
-	BankAccounts.set(interaction.user.id, account);
+	balance+=interestAmount;
+	BankAccounts.set(interaction.user.id, balance);
+	BankInterest.set(interaction.user.id, new Date());
     
     //get account balance
-    interaction.reply({ content: 'You have been awarded `Ᵽ'+interestAmount+'` in interest. Your new balance is: `Ᵽ'+account.balance+'`.\n '+interestRateInfo, ephemeral: true });
+    interaction.reply({ content: 'You have been awarded `Ᵽ'+interestAmount+'` in interest. Your new balance is: `Ᵽ'+balance+'`.\n '+interestRateInfo, ephemeral: true });
 	log(interaction.user.toString(),'collected Ᵽ',interestAmount,'in interest','('+interestRateInfo+')');
 	checkRichestPersonRole(interaction.guild);
 });
@@ -159,47 +151,37 @@ const TRANSFER = {
 };
 
 new Module('bank transfer', 'message', TRANSFER, async (interaction) => {
-    //user doesnt has account
-    if (typeof BankAccounts.get(interaction.user.id) == 'undefined') return interaction.reply({ content: NOACCOUNT, ephemeral: true });
-      let account = BankAccounts.get(interaction.user.id);
-      let balance = account.balance;
-	
-	//check if this in an "award", ie money awarded to members and not subtracted from an account (only can be done by bank admin)
+
+    let balance = BankAccounts.get(interaction.user.id);
 	let AWARD = (interaction.user.id == BANKADMINISTRATOR);
-    
-    //get receiving account
     let payee = interaction.options.getUser('payee');
-    
-	//dont let users send money to themselves
-	if (interaction.user.id == payee.id) return interaction.reply({ content: 'We detected a money laundering attempt on your account. Your information has been sent to the Lozpekistan Money Fraud Prevention Department. If this was intentional, please submit yourself to the nearest Lozpekistan Law Enforcement center for questioning.', ephemeral: true });
-	
-	//payee doesn't has account
-    if (typeof BankAccounts.get(payee.id) == 'undefined') return interaction.reply({ content: 'We\'re sorry, but this payee doesn\'t seem to have an open account with us. Please ensure they have an open account and try again.', ephemeral: true });
-        let payeeAccount = BankAccounts.get(payee.id);
-        let payeeBalance = payeeAccount.balance;
-        
-    //get receiving amount
-    let transferAmount = interaction.options.getInteger('amount');
-    
-    //make sure amount is valid
-    if (transferAmount <= 0) return interaction.reply({ content: 'We\'re sorry, transfer amount must be a positive number.', ephemeral: true });
-	
-    //make sure user has enough money
-    if (transferAmount > balance && !AWARD) return interaction.reply({ content: 'We\'re sorry, you do not have the funds to make this transfer.', ephemeral: true });    
+	let transferAmount = interaction.options.getInteger('amount');
+    let payeeBalance = BankAccounts.get(payee.id);
+
+	//check for errors
+	if (typeof balance == 'undefined') 
+		return interaction.reply({ content: NOACCOUNT, ephemeral: true });
+	if (interaction.user.id == payee.id) 
+		return interaction.reply({ content: 'We detected a money laundering attempt on your account. Your information has been sent to the Lozpekistan Money Fraud Prevention Department. If this was intentional, please submit yourself to the nearest Lozpekistan Law Enforcement center for questioning.', ephemeral: true });
+    if (typeof payeeBalance == 'undefined') 
+		return interaction.reply({ content: 'We\'re sorry, but this payee doesn\'t seem to have an open account with us. Please ensure they have an open account and try again.', ephemeral: true });
+    if (transferAmount <= 0) 
+		return interaction.reply({ content: 'We\'re sorry, transfer amount must be a positive number.', ephemeral: true });
+    if (transferAmount > balance && !AWARD) 
+		return interaction.reply({ content: 'We\'re sorry, you do not have the funds to make this transfer.', ephemeral: true });    
     
     //transfer money 
-	if (!AWARD) account.balance = parseInt(account.balance) - transferAmount;
-				payeeAccount.balance =  parseInt(payeeAccount.balance) + transferAmount;
-    if (!AWARD) BankAccounts.set(interaction.user.id, account);
-				BankAccounts.set(payee.id, payeeAccount);
+	balance = 		parseInt(balance) - transferAmount;
+	payeeBalance =  parseInt(payeeBalance) + transferAmount;
+	BankAccounts.set(payee.id, payeeBalance);
+	if (!AWARD) BankAccounts.set(interaction.user.id, balance);
 	
-	let memo = (interaction.options.getString('memo')||'n/a');
-
 	//send dm notification to payee
-	payee.send("Hello, this is a message from Lozpekistan National Bank:\n\n User "+interaction.user.toString()+" has transferred ` Ᵽ"+transferAmount+" ` to your account. Reason: ` "+ (AWARD?'AWARD: ':'') + memo+"` \n Your new balance is ` Ᵽ"+payeeAccount.balance+" ` \n\n Have a nice day!");
+	let memo = (interaction.options.getString('memo')||'n/a');
+	payee.send("Hello, this is a message from Lozpekistan National Bank:\n\n User "+interaction.user.toString()+" has transferred ` Ᵽ"+transferAmount+" ` to your account. Reason: ` "+ (AWARD?'AWARD: ':'') + memo+"` \n Your new balance is ` Ᵽ"+payeeBalance+" ` \n\n Have a nice day!");
 
     //success
-    interaction.reply({ content: 'Your money was successfully transfered. \n\nYour new balance is: `Ᵽ'+account.balance+'`.\n\n Thank you for using Lozpekistan National Bank.', ephemeral: true });
+    interaction.reply({ content: 'Your money was successfully transfered. \n\nYour new balance is: `Ᵽ'+balance+'`.\n\n Thank you for using Lozpekistan National Bank.', ephemeral: true });
 	log(interaction.user.toString(),'transferred Ᵽ',transferAmount,'to',payee.toString(),'for `'+memo+'`',AWARD?'[AWARD]':'');
 	checkRichestPersonRole(interaction.guild);
 });
@@ -258,7 +240,7 @@ function checkRichestPersonRole (guild) {
 
 	let largestAccount = Object.keys(accounts).reduce((prev,curr) => {
 		console.log({prev: prev, curr: curr});
-		return accounts[prev].balance > accounts[curr].balance ? prev :curr;
+		return accounts[prev] > accounts[curr] ? prev :curr;
 	}, Object.keys(accounts)[0]);
 
 	//remove role from current user, then assign to richest user
@@ -274,7 +256,6 @@ function checkRichestPersonRole (guild) {
 		.then(member => member.roles.add(RICHESTPERSONROLE))
 		.then(member => log(member.toString(),'became richest person'))
 		.catch(console.log)
-		
 }
 
 //BANK API
@@ -328,5 +309,5 @@ bankAPI.put('/balance/:userId', function(req, res) {
 });
 
 bankAPI.use((req, res)=> {return res.sendStatus(404);});
-bankAPI.listen(4420, () => {console.log(`Bank API listening on port 4420`);});
+bankAPI.listen(4420, 'localhost', () => {console.log(`Bank API listening on port 4420`);});
 
