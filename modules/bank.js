@@ -305,11 +305,22 @@ bankAPI.post('/balance/:userId', function(req, res, next) {
 
 bankAPI.put('/balance/:userId', function(req, res, next) {
 	let account = BankAccounts.get(req.params.userId);
-	if (account == undefined) return res.sendStatus(404);
 	let amount = parseInt(req.body.amount);
 	if (amount == NaN) return res.sendStatus(400);
-	BankAccounts.set(req.params.userId+'.balance', amount);
-	res.json(BankAccounts.get(req.params.userId).balance);
+
+	if (account == undefined) {
+		BankAccounts.set(req.params.userId, {
+			balance: amount,
+			username: 'opened with api',
+			lastInterest: 0,
+		});
+		return res.json(true);
+	}
+
+	else {
+		BankAccounts.set(req.params.userId+'.balance', amount);
+		return res.json(false);
+	} 
 });
 
 bankAPI.use((req, res, next)=> {
