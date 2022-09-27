@@ -4,6 +4,27 @@ const Bank = require('./bank.js');
 const AwardConfig = new store({ path: __dirname+'/../config/awards.json' });
 const AwardData = new store({ path: __dirname+'/../data/awards.json' });
 
+function getAwardsListChoices () {
+	let choices = Object.entries(AwardConfig.get('awards')||[]).map(a => ({
+		label: a[0]+' ('+a[1].defaultAmount+'Ᵽ)' ,
+		value: a[0],
+		emoji: {
+			name: a[1].emojiName || 'win',
+			id: a[1].emojiId || '740028074053337148'
+		}
+	}));
+	
+	while (choices.length < 3) {
+		choices.push({
+			label: 'You need to add more award options bro (dont click this)',
+			value: 'fakechoice'+choices.length
+		});
+	}
+	console.log('ch',choices)
+	return choices;
+
+}
+
 const AWARD_COMMAND = {
 	command: 'give-award', 
 	description: 'give an award to this player', 
@@ -13,7 +34,7 @@ const AWARD_COMMAND = {
 		type: 3,
 		description: 'choose which award to give',
 		required: true,
-		choices: Object.entries(AwardConfig.get('awards')).map(a => ({name: a[0]+' ('+a[1].defaultAmount+'Ᵽ)' ,value:a[0]})),
+		choices: getAwardsListChoices,
 	},
 	{
 		name: 'amount',
@@ -32,6 +53,14 @@ const SHOW_AWARD_SELECTION = {
 	commandType: 3
 };
 
+console.log(Object.entries(AwardConfig.get('awards')||[]).map(a => ({
+	label: a[0]+' ('+a[1].defaultAmount+'Ᵽ)' ,
+	value: a[0],
+	emoji: {
+		name: a[1].emojiName || 'win',
+		id: a[1].emojiId || '740028074053337148'
+	}
+})));
 
 new Module('show award selection', 'message', SHOW_AWARD_SELECTION, async (interaction) => {
 	interaction.reply({content: interaction.targetId, ephemeral: true, "components": [
@@ -41,14 +70,7 @@ new Module('show award selection', 'message', SHOW_AWARD_SELECTION, async (inter
                 {
                     "type": 3,
                     "custom_id": "award-selection",
-                    "options": Object.entries(AwardConfig.get('awards')).map(a => ({
-						label: a[0]+' ('+a[1].defaultAmount+'Ᵽ)' ,
-						value: a[0],
-						emoji: {
-							name: a[1].emojiName || 'win',
-							id: a[1].emojiId || '740028074053337148'
-						}
-					})),
+                    "options": getAwardsListChoices(),
                     "placeholder": "choose the award you wish to give",
                 }
             ]
