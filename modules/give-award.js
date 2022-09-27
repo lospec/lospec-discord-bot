@@ -81,7 +81,7 @@ new Module('award selected', 'message', SELECTED_AWARD, async (interaction) => {
 		});
 		
 		let awardEmoji = '<:'+ (award.emojiName||'win') +':' + (award.emojiId||'740028074053337148') +'>';
-		await interaction.message.channel.send({content: '<@'+awardedMessage.author.id+'>' + ' was given the **'+awardId+'** award and Ᵽ'+award.defaultAmount+'!\n '+awardEmoji});
+		await interaction.message.channel.send({content: '<@'+awardedMessage.author.id+'>' + ' was given the '+awardEmoji+' **'+awardId+'** award and Ᵽ'+award.defaultAmount+'!'});
 
 		interaction.update({content: awardEmoji + ' ' + awardId+' award given to '+awardedMessage.author.username,components: []});
 	} catch (err) {
