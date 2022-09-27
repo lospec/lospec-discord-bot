@@ -227,6 +227,20 @@ client.on('interactionCreate', (interaction, user) => {
 	if (!interaction.isCommand()) return;
 	checkSlashCommand(user,interaction.commandName,interaction);
 });
+// context menu right click app commands
+client.on('interactionCreate', (interaction, user) => {
+	if (!interaction.isMessageContextMenu()) return;
+	
+	checkSlashCommand(user,interaction.commandName,interaction);
+});
+// command chat input select dropdown command
+client.on('interactionCreate', (interaction, user) => {
+	console.log('selectiomenu',interaction.isSelectMenu())
+	if (!interaction.isSelectMenu()) return;
+	
+	console.log('WHATS THE NA<E',interaction.customId)
+	checkSlashCommand(user,interaction.customId,interaction);
+});
 
 client.on('voiceStateUpdate', (oldState, newState) => {
 
@@ -377,16 +391,17 @@ async function loadSlashCommands (clientId) {
 		//loop through modules
 		modules.forEach(module => {  
 			if (!module.command) return;
+			if (typeof module.command.type == 'string') return;
 			if (module.command.name !== module.command.name.toLowerCase()) return log({module: module.name}, 'command "'+module.command.name+'" must be lowercase');
 
 			commandsList.push(module.command);
-
+			console.log('added command /'+module.command.name)
 			//add command
 			//global.guild.commands.create(module.commandOptions).then(e=>log('command added: /'+module.command));
 		});
 
 		//request commands update 
-		console.log('commands', commandsList)
+		//console.log('commands', commandsList)
 		//await rest.put(Routes.applicationCommands(clientId), {body: commandsList});
 		await rest.put(Routes.applicationGuildCommands(clientId,store.get('config.guildId')), {body: commandsList} );
 		console.log('Successfully reloaded application (/) commands.');

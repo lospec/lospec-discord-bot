@@ -151,39 +151,43 @@ const TRANSFER = {
 };
 
 new Module('bank transfer', 'message', TRANSFER, async (interaction) => {
+	try {
+		let balance = BankAccounts.get(interaction.user.id);
+		let AWARD = (interaction.user.id == BANKADMINISTRATOR);
+		let payee = interaction.options.getUser('payee');
+		let transferAmount = interaction.options.getInteger('amount');
+		let payeeBalance = BankAccounts.get(payee.id);
 
-    let balance = BankAccounts.get(interaction.user.id);
-	let AWARD = (interaction.user.id == BANKADMINISTRATOR);
-    let payee = interaction.options.getUser('payee');
-	let transferAmount = interaction.options.getInteger('amount');
-    let payeeBalance = BankAccounts.get(payee.id);
+		//check for errors
+		if (typeof balance == 'undefined') 
+			return interaction.reply({ content: NOACCOUNT, ephemeral: true });
+		if (interaction.user.id == payee.id) 
+			return interaction.reply({ content: 'We detected a money laundering attempt on your account. Your information has been sent to the Lozpekistan Money Fraud Prevention Department. If this was intentional, please submit yourself to the nearest Lozpekistan Law Enforcement center for questioning.', ephemeral: true });
+		if (typeof payeeBalance == 'undefined') 
+			return interaction.reply({ content: 'We\'re sorry, but this payee doesn\'t seem to have an open account with us. Please ensure they have an open account and try again.', ephemeral: true });
+		if (transferAmount <= 0) 
+			return interaction.reply({ content: 'We\'re sorry, transfer amount must be a positive number.', ephemeral: true });
+		if (transferAmount > balance && !AWARD) 
+			return interaction.reply({ content: 'We\'re sorry, you do not have the funds to make this transfer.', ephemeral: true });    
+		if (payee.bot)
+			return interaction.reply({ content: 'We\'re sorry, robots are not allowed to own bank accounts at this time.', ephemeral: true });  
+		
+		//transfer money 
+		balance = 		parseInt(balance) - transferAmount;
+		payeeBalance =  parseInt(payeeBalance) + transferAmount;
+		BankAccounts.set(payee.id, payeeBalance);
+		if (!AWARD) BankAccounts.set(interaction.user.id, balance);
+		
+		//send dm notification to payee
+		let memo = (interaction.options.getString('memo')||'n/a');
+		payee.send({content: 'Hello, this is a message from Lozpekistan National Bank:', embeds:[{description:"User "+interaction.user.toString()+" has transferred ` Ᵽ"+transferAmount+" ` to your account. \nReason: ` "+ (AWARD?'AWARD: ':'') + memo+"` \n Your new balance is ` Ᵽ"+payeeBalance+" ` \n\n Have a nice day!"}]})
 
-	//check for errors
-	if (typeof balance == 'undefined') 
-		return interaction.reply({ content: NOACCOUNT, ephemeral: true });
-	if (interaction.user.id == payee.id) 
-		return interaction.reply({ content: 'We detected a money laundering attempt on your account. Your information has been sent to the Lozpekistan Money Fraud Prevention Department. If this was intentional, please submit yourself to the nearest Lozpekistan Law Enforcement center for questioning.', ephemeral: true });
-    if (typeof payeeBalance == 'undefined') 
-		return interaction.reply({ content: 'We\'re sorry, but this payee doesn\'t seem to have an open account with us. Please ensure they have an open account and try again.', ephemeral: true });
-    if (transferAmount <= 0) 
-		return interaction.reply({ content: 'We\'re sorry, transfer amount must be a positive number.', ephemeral: true });
-    if (transferAmount > balance && !AWARD) 
-		return interaction.reply({ content: 'We\'re sorry, you do not have the funds to make this transfer.', ephemeral: true });    
-    
-    //transfer money 
-	balance = 		parseInt(balance) - transferAmount;
-	payeeBalance =  parseInt(payeeBalance) + transferAmount;
-	BankAccounts.set(payee.id, payeeBalance);
-	if (!AWARD) BankAccounts.set(interaction.user.id, balance);
-	
-	//send dm notification to payee
-	let memo = (interaction.options.getString('memo')||'n/a');
-	payee.send("Hello, this is a message from Lozpekistan National Bank:\n\n User "+interaction.user.toString()+" has transferred ` Ᵽ"+transferAmount+" ` to your account. Reason: ` "+ (AWARD?'AWARD: ':'') + memo+"` \n Your new balance is ` Ᵽ"+payeeBalance+" ` \n\n Have a nice day!");
+		//success
+		interaction.reply({ content: 'Your money was successfully transfered. \n\nYour new balance is: `Ᵽ'+balance+'`.\n\n Thank you for using Lozpekistan National Bank.', ephemeral: true });
+		log(interaction.user.toString(),'transferred Ᵽ',transferAmount,'to',payee.toString(),'for `'+memo+'`',AWARD?'[AWARD]':'');
+		checkRichestPersonRole(interaction.guild);
 
-    //success
-    interaction.reply({ content: 'Your money was successfully transfered. \n\nYour new balance is: `Ᵽ'+balance+'`.\n\n Thank you for using Lozpekistan National Bank.', ephemeral: true });
-	log(interaction.user.toString(),'transferred Ᵽ',transferAmount,'to',payee.toString(),'for `'+memo+'`',AWARD?'[AWARD]':'');
-	checkRichestPersonRole(interaction.guild);
+	} catch (err) {interaction.reply({content: 'transfer failed: \n'+err})}
 });
 
 //████████████████████████████████████████████████████████████████████████████████
@@ -258,7 +262,9 @@ function checkRichestPersonRole (guild) {
 		.catch(console.log)
 }
 
-//BANK API
+//████████████████████████████████████████████████████████████████████████████████
+//████████████████████████████████ EXTERNAL API ██████████████████████████████████
+//████████████████████████████████████████████████████████████████████████████████
 
 const express = require('express');
 let bankAPI = express();
@@ -274,40 +280,53 @@ bankAPI.get('/balance', function(req, res) {
 });
 
 bankAPI.get('/balance/:userId', function(req, res) {
-	let account = BankAccounts.get(req.params.userId);
-	if (account == undefined) return res.sendStatus(404);
-	res.json(account.balance);
+	let balance = BankAccounts.get(req.params.userId);
+	if (balance == undefined) return res.sendStatus(404);
+
+	res.json(balance);
 });
 
 bankAPI.post('/balance/:userId', function(req, res) {
-	let account = BankAccounts.get(req.params.userId);
-	if (account == undefined) return res.sendStatus(404);
+	let balance = BankAccounts.get(req.params.userId);
+	if (balance == undefined) return res.sendStatus(404);
 	let amount = parseInt(req.body.amount);
 	if (amount == NaN) return res.sendStatus(400);
-	BankAccounts.set(req.params.userId+'.balance', account.balance + amount);
-	res.json(BankAccounts.get(req.params.userId).balance);
+
+	BankAccounts.set(req.params.userId+'.balance', balance + amount);
+	res.json(BankAccounts.get(req.params.userId));
 });
 
 bankAPI.put('/balance/:userId', function(req, res) {
-	let account = BankAccounts.get(req.params.userId);
+	let balance = BankAccounts.get(req.params.userId);
 	let amount = parseInt(req.body.amount);
 	if (amount == NaN) return res.sendStatus(400);
 
-	if (account == undefined) {
-		BankAccounts.set(req.params.userId, {
-			balance: amount,
-			username: 'opened with api',
-			lastInterest: 0,
-		});
-		return res.json(true);
-	}
-
-	else {
-		BankAccounts.set(req.params.userId+'.balance', amount);
-		return res.json(false);
-	} 
+	BankAccounts.set(req.params.userId, amount);
+	if (balance == undefined) return res.json(true);
+	else return res.json(false);
 });
 
 bankAPI.use((req, res)=> {return res.sendStatus(404);});
 bankAPI.listen(4420, 'localhost', () => {console.log(`Bank API listening on port 4420`);});
 
+//████████████████████████████████████████████████████████████████████████████████
+//████████████████████████████████ INTERNAL API ██████████████████████████████████
+//████████████████████████████████████████████████████████████████████████████████
+
+module.exports.getBalance = async function getBalance (userId) {
+	let account = BankAccounts.get(userId);
+	if (account == undefined) throw 'account not found';
+	return account.balance;
+}
+
+module.exports.adjustBalance = async function adjustBalance (userId, amount, memo) {
+	let balance = BankAccounts.get(userId);
+	if (balance == undefined) throw 'account not found';
+	if (!amount) throw 'invalid amount';
+	let payee = await client.users.fetch(userId, {force: true});
+
+	payee.send({content: 'Hello, this is a message from Lozpekistan National Bank:', embeds:[{description:"` Ᵽ"+amount+" ` has been transferred to your account. \nReason: ` "+ memo+" ` \n Your new balance is ` Ᵽ"+(balance + amount)+" ` \n\n Have a nice day!"}]});
+
+	BankAccounts.set(userId, balance + amount);
+	return BankAccounts.get(userId);
+}
