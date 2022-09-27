@@ -114,6 +114,7 @@ new Module('award all pinned', 'message', AWARD_ALL_PINNED_COMMAND, async (inter
 
 	let pinnedMessages = await interaction.channel.messages.fetchPinned();
 	let authors = pinnedMessages.map(m => m.author.id)
+		.filter((author)=> author !== interaction.channel.ownerId)
 		.filter((author,i,array)=>array.indexOf(author) == i);
 
 	if (authors.length == 0) return interaction.reply({content: '0 pins were found', ephemeral: true });
