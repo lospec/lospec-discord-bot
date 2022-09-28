@@ -232,23 +232,28 @@ const LEADERBOARD = {
 	description: 'List top 10 richest people in lozpekistan', 
 };
 
+function nth(n){return["st","nd","rd"][((n+90)%100-10)%10-1]||"th"} 
+
 new Module('bank leaderboard', 'message', LEADERBOARD, async (interaction) => {
 	let leaderboard = [];
 	Object.entries(BankAccounts.get()).forEach(a => {
         leaderboard.push({id: a[0], balance: a[1]});
     });
 	leaderboard.sort((a, b) => b.balance - a.balance);
-	let embed = new Discord.MessageEmbed()
-		.setTitle('Lozpekistan National Bank Leaderboard')
-		.setColor(0x00AE86)
-		.setFooter('Lozpekistan National Bank')
-		.setTimestamp();
+	let message = `\`\`\`
+	Lozpekistan National Bank Top 10 Customers
+	------------------------------------
+	
+	`;
+
 	for (let i = 0; i < 10; i++) {
 		if (typeof leaderboard[i] == 'undefined') break;
 		let user = await client.users.fetch(leaderboard[i].id);
-		embed.addField({name: i.toString(), value: user.username, inline: true});
+		message += `${i+1}${nth(i+1)}: ${user.username}`;
+		message += '\n';
 	}
-	interaction.reply({ embeds: [embed] });
+	message += '```';
+	interaction.reply({ content: message });
 	log(interaction.user.toString(),'asked for leaderboard');
 });
 
