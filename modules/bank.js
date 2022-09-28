@@ -226,6 +226,28 @@ function datesAreOnSameDay (first, second) {
 
 
 //████████████████████████████████████████████████████████████████████████████████
+//████████████████████████████████ ADMIN - account ███████████████████████████████
+//████████████████████████████████████████████████████████████████████████████████
+
+const ADMIN_ACCOUNT_COMMAND = {
+	command: 'bank-admin-account', 
+	description: 'check a users account',
+	default_member_permissions: "0",
+	options: [{
+		name: 'user',
+		type: 6,
+		description: 'Tag the user you wish to check',
+		required: true
+	}]
+};
+
+new Module('bank admin - account', 'message', ADMIN_ACCOUNT_COMMAND, async (interaction) => {
+	let payee = interaction.options.getUser('user');
+    interaction.reply({ content: JSON.stringify({user: payee.username, userid: payee.id, balance: BankAccounts.get(payee.id), interest: BankInterest.get(payee.id)}), ephemeral: true });
+});
+
+
+//████████████████████████████████████████████████████████████████████████████████
 //████████████████████████████████ LOG ███████████████████████████████████████████
 //████████████████████████████████████████████████████████████████████████████████
 
@@ -325,7 +347,9 @@ module.exports.getBalance = async function getBalance (userId) {
 }
 
 module.exports.adjustBalance = async function adjustBalance (userId, amount, memo) {
+	console.log('BANK API INTERNAL','adjust balance',userId,amount,memo);
 	let balance = BankAccounts.get(userId);
+		console.log('\t',balance)
 	if (balance == undefined) return false;
 	if (!amount) throw 'invalid amount';
 	let payee = await client.users.fetch(userId, {force: true});
