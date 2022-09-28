@@ -224,6 +224,33 @@ function datesAreOnSameDay (first, second) {
 	return first.getFullYear() === second.getFullYear() && first.getMonth() === second.getMonth() && first.getDate() === second.getDate();	
 }
 
+//████████████████████████████████████████████████████████████████████████████████
+//████████████████████████████████ Leaderboard ███████████████████████████████████
+//████████████████████████████████████████████████████████████████████████████████
+const LEADERBOARD = {
+	command: 'bankleaderboard', 
+	description: 'List top 10 richest people in lozpekistan', 
+};
+
+new Module('bank leaderboard', 'message', LEADERBOARD, async (interaction) => {
+	let leaderboard = [];
+	BankAccounts.forEach((value, key) => {
+		leaderboard.push({id: key, balance: value});
+	});
+	leaderboard.sort((a, b) => b.balance - a.balance);
+	let embed = new Discord.MessageEmbed()
+		.setTitle('Lozpekistan National Bank Leaderboard')
+		.setColor(0x00AE86)
+		.setFooter('Lozpekistan National Bank')
+		.setTimestamp();
+	for (let i = 0; i < 10; i++) {
+		if (typeof leaderboard[i] == 'undefined') break;
+		let user = await client.users.fetch(leaderboard[i].id);
+		embed.addField(user.username, 'Ᵽ'+leaderboard[i].balance, true);
+	}
+	interaction.reply({ embeds: [embed] });
+	log(interaction.user.toString(),'asked for leaderboard');
+});
 
 //████████████████████████████████████████████████████████████████████████████████
 //████████████████████████████████ ADMIN - account ███████████████████████████████
