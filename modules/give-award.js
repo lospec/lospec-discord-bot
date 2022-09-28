@@ -77,7 +77,8 @@ new Module('award selected', 'message', SELECTED_AWARD, async (interaction) => {
 			prize: award.defaultAmount,
 			date: new Date(),
 			messageId: awardedMessageId,
-			channelName: interaction.message.channel.name
+			channelName: interaction.message.channel.name,
+			threadId: interaction.message.channel.id
 		});
 		
 		let awardEmoji = '<:'+ (award.emojiName||'win') +':' + (award.emojiId||'740028074053337148') +'>';
@@ -111,19 +112,41 @@ const AWARD_ALL_PINNED_COMMAND = {
 new Module('award all pinned', 'message', AWARD_ALL_PINNED_COMMAND, async (interaction) => {
 	let awardId = interaction.options.getString('award-name');
 	let award = AwardConfig.get('awards.'+awardId);
-
 	let pinnedMessages = await interaction.channel.messages.fetchPinned();
-	let authors = pinnedMessages.map(m => m.author.id)
-		.filter((author)=> author !== interaction.channel.ownerId)
-		.filter((author,i,array)=>array.indexOf(author) == i);
+	let awardsFromThisChannel = Object.values(AwardData.get())
+		.filter(a => a.threadId == interaction.channel.id)
+		.map(a => a.messageId);
+	let authorsWithAwardsFromThisChannel = Object.values(AwardData.get())
+		.filter(a => a.threadId == interaction.channel.id)
+		.map(a => a.userId);
+	let awardGiven = {};
 
-	if (authors.length == 0) return interaction.reply({content: '0 pins were found', ephemeral: true });
+	for (const message of pinnedMessages.values()) {
+		if (awardsFromThisChannel.includes(message.id)) { console.log('message',message.id,'skipped: message already given award'); continue; }
+		if (authorsWithAwardsFromThisChannel.includes(message.author.id)) { console.log('message',message.id,'skipped: author already given award in this channel'); continue; }
+		if (message.author.id == interaction.channel.ownerId) { console.log('message',message.id,'skipped: message is by thread starter'); continue; }
+		if (awardGiven[message.author.id]) { console.log('message',message.id,'skipped: user already awarded this time'); continue; }
 
-	authors.forEach(async author => {
-		await Bank.adjustBalance(author, award.defaultAmount, 'You were given the '+awardId+' award in '+interaction.channel.name+'!')
-	});
+		//ready to give award
+		awardGiven[message.author.id] = true;
+		await Bank.adjustBalance(message.id, award.defaultAmount, 'You were given the '+awardId+' award in '+interaction.channel.name+'!');
+		AwardData.set(interaction.id, {
+			userId: message.author.id,
+			award: awardId,
+			prize: award.defaultAmount,
+			date: new Date(),
+			messageId: message.id,
+			channelName: interaction.channel.name,
+			threadId: interaction.channel.id
+		});
+		console.log('message', message.id, 'given award');
+	}
 
-	interaction.reply({content: authors.map(a=>'<@'+a+'>').join(', ') + ' were given the **'+awardId+'** award and Ᵽ'+award.defaultAmount+'!', ephemeral: true });
+	//no matches
+	if (Object.keys(awardGiven).length == 0) return await interaction.reply({content: '0 pins were found', ephemeral: true });
+
+	//report matches
+	await interaction.reply({content: Object.keys(awardGiven).map(a=>'<@'+a+'>').join(', ') + ' were given the **'+awardId+'** award and Ᵽ'+award.defaultAmount+'!'});
 });
 
 //████████████████████████████████████████████████████████████████████████████████
