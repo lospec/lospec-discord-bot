@@ -246,7 +246,7 @@ new Module('bank leaderboard', 'message', LEADERBOARD, async (interaction) => {
 	for (let i = 0; i < 10; i++) {
 		if (typeof leaderboard[i] == 'undefined') break;
 		let user = await client.users.fetch(leaderboard[i].id);
-		embed.addField('i', user.username, true);
+		embed.addField(i, user.username, true);
 	}
 	interaction.reply({ embeds: [embed] });
 	log(interaction.user.toString(),'asked for leaderboard');
