@@ -241,10 +241,10 @@ new Module('bank leaderboard', 'message', LEADERBOARD, async (interaction) => {
     });
 	leaderboard.sort((a, b) => b.balance - a.balance);
 	let message = `\`\`\`
-	Lozpekistan National Bank Top 10 Customers
-	------------------------------------
-	
-	`;
+Lozpekistan National Bank Top 10 Customers
+------------------------------------
+
+`;
 
 	for (let i = 0; i < 10; i++) {
 		if (typeof leaderboard[i] == 'undefined') break;
