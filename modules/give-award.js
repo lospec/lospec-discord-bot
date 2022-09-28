@@ -71,7 +71,7 @@ new Module('award selected', 'message', SELECTED_AWARD, async (interaction) => {
 		await Bank.adjustBalance(awardedMessage.author.id, award.defaultAmount, 'You were given the '+awardId+' award in '+interaction.message.channel.name+'!')
 
 		//record award
-		AwardData.set(interaction.message.id, {
+		AwardData.set(awardedMessageId, {
 			userId: awardedMessage.author.id,
 			award: awardId,
 			prize: award.defaultAmount,
@@ -130,7 +130,7 @@ new Module('award all pinned', 'message', AWARD_ALL_PINNED_COMMAND, async (inter
 		//ready to give award
 		awardGiven[message.author.id] = true;
 		await Bank.adjustBalance(message.id, award.defaultAmount, 'You were given the '+awardId+' award in '+interaction.channel.name+'!');
-		AwardData.set(interaction.id, {
+		AwardData.set(message.id, {
 			userId: message.author.id,
 			award: awardId,
 			prize: award.defaultAmount,
