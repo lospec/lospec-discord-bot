@@ -234,9 +234,9 @@ const LEADERBOARD = {
 
 new Module('bank leaderboard', 'message', LEADERBOARD, async (interaction) => {
 	let leaderboard = [];
-	BankAccounts.forEach((value, key) => {
-		leaderboard.push({id: key, balance: value});
-	});
+	Object.entries(BankAccounts.get()).forEach(a => {
+        leaderboard.push({id: a[0], balance: a[1]});
+    });
 	leaderboard.sort((a, b) => b.balance - a.balance);
 	let embed = new Discord.MessageEmbed()
 		.setTitle('Lozpekistan National Bank Leaderboard')
@@ -246,7 +246,7 @@ new Module('bank leaderboard', 'message', LEADERBOARD, async (interaction) => {
 	for (let i = 0; i < 10; i++) {
 		if (typeof leaderboard[i] == 'undefined') break;
 		let user = await client.users.fetch(leaderboard[i].id);
-		embed.addField(user.username, 'Ᵽ'+leaderboard[i].balance, true);
+		embed.addField('i', user.username, true);
 	}
 	interaction.reply({ embeds: [embed] });
 	log(interaction.user.toString(),'asked for leaderboard');
