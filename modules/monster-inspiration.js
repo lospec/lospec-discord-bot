@@ -42,6 +42,7 @@ new Module('monster inspiration', 'message', COMMAND, async (interaction) => {
 			attachment: generator(),
 			name: 'random-monster-'+(Math.random()*168468)+'.png'
 		}],
+		ephemeral: true
 	})
 });
 
