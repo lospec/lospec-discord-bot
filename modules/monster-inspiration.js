@@ -1,10 +1,9 @@
 const fetch = require('node-fetch');
 const glob = require('glob');
 const fs = require('fs');
-const parse = require('node-html-parser').parse;
 
 const monsterGenerators = {
-	
+
 	'PokemonFusion':  () => {
 		let firstPokemon = Math.round(Math.random() * 151);
 		let secondPokemon;
