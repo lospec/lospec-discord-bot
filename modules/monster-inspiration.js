@@ -81,14 +81,13 @@ new Module('monster inspiration', 'message', COMMAND, async (interaction) => {
 	let selectedGenerator = interaction.options.getString('generator');
 	let generator = selectedGenerator?monsterGenerators[selectedGenerator]:Object.values(monsterGenerators).random();
 
-	await interaction.deferReply();
+	await interaction.deferReply({ephemeral: true});
 
 	interaction.editReply({
 		files: [{
 			attachment: await generator(),
 			name: 'random-monster-'+(Math.random()*168468)+'.png'
 		}],
-		ephemeral: true
 	})
 });
 
