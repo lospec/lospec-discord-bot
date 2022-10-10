@@ -23,7 +23,7 @@ const monsterGenerators = {
 
 
 	'StableDiffusion': ()=> {
-		let files = glob.sync('media/monsters/stable-diffusion/*.png');
+		let files = glob.sync('media/monsters/stable-diffusion/**/*.png');
 		return fs.readFileSync(files.random());
 	},
 
