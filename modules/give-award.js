@@ -106,11 +106,16 @@ const AWARD_ALL_PINNED_COMMAND = {
 		description: 'choose which award to give',
 		required: true,
 		choices: getAwardsListChoices('name'),
-	}]
+	}, {
+		name: 'award-multiple-by-same-user',
+		type: 5,
+		description: 'whether or not to give multiple awards to the same user (default: false)',
+	}],
 };
 
 new Module('award all pinned', 'message', AWARD_ALL_PINNED_COMMAND, async (interaction) => {
 	let awardId = interaction.options.getString('award-name');
+	let awardMultiple = interaction.options.getBoolean('award-multiple-by-same-user') || false;
 	let award = AwardConfig.get('awards.'+awardId);
 	let pinnedMessages = await interaction.channel.messages.fetchPinned();
 	let awardsFromThisChannel = Object.values(AwardData.get())
@@ -125,7 +130,7 @@ new Module('award all pinned', 'message', AWARD_ALL_PINNED_COMMAND, async (inter
 		if (awardsFromThisChannel.includes(message.id)) { console.log('message',message.id,'skipped: message already given award'); continue; }
 		if (authorsWithAwardsFromThisChannel.includes(message.author.id)) { console.log('message',message.id,'skipped: author already given award in this channel'); continue; }
 		if (message.author.id == interaction.channel.ownerId) { console.log('message',message.id,'skipped: message is by thread starter'); continue; }
-		if (awardGiven[message.author.id]) { console.log('message',message.id,'skipped: user already awarded this time'); continue; }
+		if (awardGiven[message.author.id] && !awardMultiple) { console.log('message',message.id,'skipped: user already awarded this time'); continue; }
 
 		//ready to give award
 		awardGiven[message.author.id] = true;
