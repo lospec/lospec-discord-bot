@@ -151,7 +151,7 @@ new Module('award all pinned', 'message', AWARD_ALL_PINNED_COMMAND, async (inter
 	if (Object.keys(awardGiven).length == 0) return await interaction.reply({content: '0 pins were found', ephemeral: true });
 
 	//report matches
-	await interaction.reply({content: Object.keys(awardGiven).map(a=>'<@'+a+'>').join(', ') + ' were given the **'+awardId+'** award and Ᵽ'+award.defaultAmount+'!'});
+	await interaction.reply({content: Object.keys(awardGiven).map(a=>'<@'+a+'>').join(', ') + ' were given the **'+awardId+'** award and **Ᵽ'+award.defaultAmount+'**'+(awardMultiple?' for each entry':'')+'!'});
 });
 
 //████████████████████████████████████████████████████████████████████████████████
