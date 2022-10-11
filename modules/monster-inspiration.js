@@ -27,6 +27,11 @@ const monsterGenerators = {
 		return fs.readFileSync(files.random());
 	},
 
+	'StableDiffusionPokemon': ()=> {
+		let files = glob.sync('media/monsters/sugmimon/**/*.png');
+		return fs.readFileSync(files.random());
+	},
+
 //TODO: unfortunatley this seems to be fetching the same page each time no matter what
 	// 'Spore': async () => {
 	// 	let randomBatchId = Math.round(Math.random()*99999);
