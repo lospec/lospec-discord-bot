@@ -28,7 +28,8 @@ const monsterGenerators = {
 	},
 
 	'StableDiffusionPokemon': ()=> {
-		let files = glob.sync('media/monsters/sugmimon/**/*.png');
+		let files = glob.sync('media/monsters/sugimon/**/*.png');
+		console
 		return fs.readFileSync(files.random());
 	},
 
