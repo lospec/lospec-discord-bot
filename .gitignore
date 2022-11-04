@@ -5,3 +5,4 @@ phrases.txt
 data/
 config/
 media/*
+modules/monster-catcher.js
