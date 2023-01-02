@@ -3,8 +3,9 @@
   "version": "4.0.0",
   "description": "A discord bot designed to interact with Lospec.com",
   "main": "bot.js",
+  "type": "module",
   "scripts": {
-    "start": "bot.js"
+    "start": "node bot.js"
   },
   "repository": {
     "type": "git",
@@ -24,6 +25,7 @@
   },
   "homepage": "https://github.com/lospec/lospec-discord-bot#readme",
   "dependencies": {
-    "discord.js": "^14.7.1"
+    "discord.js": "^14.7.1",
+    "dotenv": "^16.0.3"
   }
 }
