@@ -1,0 +1,26 @@
+{
+  "name": "lospec-discord-bot",
+  "version": "4.0.0",
+  "description": "A discord bot designed to interact with Lospec.com",
+  "main": "bot.js",
+  "scripts": {
+    "start": "bot.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lospec/lospec-discord-bot.git"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "pixel",
+    "art",
+    "lospec"
+  ],
+  "author": "Lospec",
+  "license": "GPL-2.0-only",
+  "bugs": {
+    "url": "https://github.com/lospec/lospec-discord-bot/issues"
+  },
+  "homepage": "https://github.com/lospec/lospec-discord-bot#readme"
+}
