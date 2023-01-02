@@ -22,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/lospec/lospec-discord-bot/issues"
   },
-  "homepage": "https://github.com/lospec/lospec-discord-bot#readme"
+  "homepage": "https://github.com/lospec/lospec-discord-bot#readme",
+  "dependencies": {
+    "discord.js": "^14.7.1"
+  }
 }
