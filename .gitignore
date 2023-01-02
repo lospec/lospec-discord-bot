@@ -1,8 +1,0 @@
-node_modules
-/*.json
-jokes.txt
-phrases.txt
-data/
-config/
-media/*
-modules/monster-catcher.js
