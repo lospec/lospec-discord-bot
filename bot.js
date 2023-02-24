@@ -404,6 +404,7 @@ async function loadSlashCommands (clientId) {
 		//request commands update 
 		//console.log('commands', commandsList)
 		//await rest.put(Routes.applicationCommands(clientId), {body: commandsList});
+		if (!store.get('config.guildId')) return console.log('config.guildId not set, slash commands will not be available');
 		await rest.put(Routes.applicationGuildCommands(clientId,store.get('config.guildId')), {body: commandsList} );
 		console.log('Successfully reloaded application (/) commands.');
 
