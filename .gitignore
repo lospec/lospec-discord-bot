@@ -6,3 +6,4 @@ data/
 config/
 media/*
 modules/monster-catcher.js
+.env
