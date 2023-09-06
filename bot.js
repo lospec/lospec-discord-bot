@@ -408,7 +408,11 @@ async function loadSlashCommands (clientId) {
 
 	} catch (error) {
 		console.error(error); 
-		if (error?.code == 50035) return console.log('There is one or more duplicate command names: ', commandsList.map(c=>c.name).filter(c => {return commandsList.map(c=>c.name).filter(x => x == c).length > 1}));
+		//console.error('Raw Errors:', JSON.stringify(error?.rawError?.errors, null,2));
+		Object.keys(error?.rawError?.errors).forEach(commandIndex => {
+			console.error('Error with command:', commandsList[commandIndex]?.name, JSON.stringify(error?.rawError?.errors[commandIndex], null,2));
+		});
+		//if (error?.code == 50035) return console.log('There is one or more duplicate command names: ', commandsList.map(c=>c.name).filter(c => {return commandsList.map(c=>c.name).filter(x => x == c).length > 1}));
 	}
 }
 
