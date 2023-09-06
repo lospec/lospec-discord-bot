@@ -6,7 +6,7 @@ const CHANNEL = '506277390050131978'
 
 let text= [
 	'Hiya! I started a feedback thread for you, as this is a thread-only channel. If this was not intended, please archive the thread and delete your comment.',
-	'Summoning all <@&1077243339147055205> to help! \nJoin the critiquers by clicking **Channels & Roles** in the sidebar, and select **"Critiquers"** under **"When do you want to be pinged?"**.'
+	'Summoning all <@&1077243339147055205> <@&1120698482261495868> <@&1120719197610197142> <@&1145402038017081474> to help! \nJoin the critiquers by clicking **Channels & Roles** in the sidebar, and select **"Critiquers"** under **"When do you want to be pinged?"**.'
 ].join('\n\n')
 
 
