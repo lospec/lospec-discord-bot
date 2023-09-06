@@ -384,10 +384,9 @@ client.once('ready', () => {
 const rest = new REST({ version: '9' }).setToken(CONFIG.token);
 
 async function loadSlashCommands (clientId) {
+	let commandsList = []; 
 	try {
 		console.log('Started refreshing application (/) commands.');
-
-		let commandsList = []; 
 
 		//loop through modules
 		modules.forEach(module => {  
@@ -402,12 +401,15 @@ async function loadSlashCommands (clientId) {
 		});
 
 		//request commands update 
-		//console.log('commands', commandsList)
+		//console.log('Command List:', commandsList)
 		//await rest.put(Routes.applicationCommands(clientId), {body: commandsList});
 		await rest.put(Routes.applicationGuildCommands(clientId,store.get('config.guildId')), {body: commandsList} );
 		console.log('Successfully reloaded application (/) commands.');
 
-	} catch (error) {console.error(error);}
+	} catch (error) {
+		console.error(error); 
+		if (error?.code == 50035) return console.log('There is one or more duplicate command names: ', commandsList.map(c=>c.name).filter(c => {return commandsList.map(c=>c.name).filter(x => x == c).length > 1}));
+	}
 }
 
 
