@@ -16,7 +16,7 @@ function getAwardsListChoices (nameName = 'label') {
 	
 	while (choices.length < 3) {
 		choices.push({
-			label: 'You need to add more award options bro (dont click this)',
+			[nameName]: 'You need to add more award options bro (dont click this)',
 			value: 'fakechoice'+choices.length
 		});
 	}
