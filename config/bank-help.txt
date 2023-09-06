@@ -1,0 +1,10 @@
+Thank you for calling the Lozpekistan National Bank!
+
+To open an account, use the `/bankopenaccount` command.
+
+To see your account balance, use the `/bankbalance` command.
+
+To send money to another account holder, use the `/banktransfer` command.
+
+Each day your account will accrue interest. This interest must be collected manually once per day. Higher rates may be awarded to upper-class Lozpekistan citizens.
+To collect your interest, or see your current rate, use the `/bankinterest` command.
