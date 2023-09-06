@@ -37,6 +37,8 @@ new Module('top user', 'message', {}, function (message,user) {
 //admin trigger of refreshing users manually
 new Module('say', 'message', {filter: /^!refreshactiveusers$/i, permissions: 'MANAGE_MESSAGES'}, refreshActiveUsers);
 
+
+
 async function refreshActiveUsers () {
 	log('refreshing active users');
 
@@ -84,7 +86,7 @@ async function populateRoleMembers () {
 
 		Object.keys(dayData).forEach(u => {
 			if (!usersFound[u])	usersFound[u] = 0;
-			if (dayData[u] > MINMESSAGES) usersFound[u]++;
+			if (dayData[u] >= MINMESSAGES) usersFound[u]++;
 		});
 	});
 
@@ -106,6 +108,55 @@ async function populateRoleMembers () {
 	});
 
 }
+
+
+
+
+const CHECK_ACTIVE_USER_COMMAND = {
+	command: 'check_active_user_status', 
+	description: 'Check if a specific user should be an active user', 
+	options: [{
+		name: 'user',
+		type: 6,
+		description: 'Tag the user you wish to check the active user status of',
+		required: true
+	}]	
+};
+
+new Module('check_active_user_status', 'message', CHECK_ACTIVE_USER_COMMAND, async (interaction) => {
+	try {
+		let payee = interaction.options.getUser('user');
+		let currentDay = String(Math.floor(new Date().getTime() / 1000 / 60 / 60 / 24));
+		let userData = {};
+		let totalPasses = 0;
+		let output = '```';
+
+		output += 'Messages sent in a day to be an active day: '+MINMESSAGES+'\n';
+		output += 'Active days needed in past week to be considered active: '+MINACTIVEDAYS+'\n\n';
+	
+		for (let i=0; i<7; i++) {
+			let dayData = topUserData.get(String(currentDay-i));
+
+			let dayText = ['today','yesterday','2 days ago','3 days ago','4 days ago','5 days ago','6 days ago'][i];
+			let pass = dayData[payee.id] >= MINMESSAGES ? 'active' : 'inactive';
+			if (pass == 'active') totalPasses++;
+
+			if (dayData[payee.id]) output += dayText+': '+dayData[payee.id]+' ['+pass+']'+'\n';
+			else output += dayText+': 0 [inactive]\n';
+		}
+
+		let activeMemberStatus = totalPasses >= MINACTIVEDAYS ? 'active' : 'inactive';
+
+		output += '\nTotal active days: '+totalPasses+'\n';
+		output += 'Active member status: '+activeMemberStatus+'\n';
+ 
+		output += '```';
+
+		//success
+		interaction.reply({ content: output, ephemeral: true });
+
+	} catch (err) {interaction.reply({content: 'checking active user failed: \n'+err})}
+});
 
 
 /*global CONFIG, CONFIGstore, client, Module, log, error, send, react, sendEmoji, pickRandom, messageHasBotPing, isMod */
