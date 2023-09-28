@@ -249,7 +249,7 @@ new Module('bank leaderboard', 'message', LEADERBOARD, async (interaction) => {
 		let message = '```Lozpekistan National Bank Top '+LEADERBOARDLENGTH+' Customers \n------------------------------------\n\n';
 
 		let position = 1;
-		for (let i = 0; i < leaderboard.length && position < LEADERBOARDLENGTH; i++) {
+		for (let i = 0; i < leaderboard.length && position <= LEADERBOARDLENGTH; i++) {
 			console.log(leaderboard[i]);
 			if (typeof leaderboard[i] == 'undefined') break;
 			try {
@@ -263,7 +263,7 @@ new Module('bank leaderboard', 'message', LEADERBOARD, async (interaction) => {
 				console.log('bad user');
 			}
 		}
-		message += '\n\nOut of a total of '+count+' customers.```';
+		message += '\n------------------------------------\n\nOut of a total of '+count+' customers.```';
 		interaction.reply({ content: message });
 		banklog(interaction.user.toString(),'asked for leaderboard');
 	} catch (err) {
@@ -289,7 +289,7 @@ new Module('bank ranking', 'message', RANKING, async (interaction) => {
 	try {
 		let rankings = [];
 		Object.entries(BankAccounts.get()).forEach(a => {
-			//if (a[0] == BANKADMINISTRATOR) return;
+			if (a[0] == BANKADMINISTRATOR) return;
 			rankings.push({id: a[0], balance: a[1]});
 		});
 		rankings.sort((a, b) => b.balance - a.balance);
