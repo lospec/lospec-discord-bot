@@ -239,12 +239,14 @@ new Module('bank leaderboard', 'message', LEADERBOARD, async (interaction) => {
 	
 	try {
 		let leaderboard = [];
+		let count = 0;
 		Object.entries(BankAccounts.get()).forEach(a => {
 			//if (a[0] == BANKADMINISTRATOR) return;
 			leaderboard.push({id: a[0], balance: a[1]});
+			count++;
 		});
 		leaderboard.sort((a, b) => b.balance - a.balance);
-		let message = '```Lozpekistan National Bank Top '+LEADERBOARDLENGTH+' Customers \n------------------------------------\n\n'
+		let message = '```Lozpekistan National Bank Top '+LEADERBOARDLENGTH+' Customers \n------------------------------------\n\n';
 
 		let position = 1;
 		for (let i = 0; i < leaderboard.length && position < LEADERBOARDLENGTH; i++) {
@@ -261,13 +263,47 @@ new Module('bank leaderboard', 'message', LEADERBOARD, async (interaction) => {
 				console.log('bad user');
 			}
 		}
-		message += '```';
+		message += '\n\nOut of a total of '+count+' customers.```';
 		interaction.reply({ content: message });
 		banklog(interaction.user.toString(),'asked for leaderboard');
 	} catch (err) {
 		console.log('error with leaderboard',err);
 	}
 });
+
+
+//████████████████████████████████████████████████████████████████████████████████
+//███████████████████████████████████ Ranking ████████████████████████████████████
+//████████████████████████████████████████████████████████████████████████████████
+
+
+const RANKING = {
+	command: 'bankranking', 
+	description: 'Get your rank of richest people in lozpekistan', 
+};
+
+new Module('bank ranking', 'message', RANKING, async (interaction) => {
+	
+	if (typeof BankAccounts.get(interaction.user.id) == 'undefined') return interaction.reply({ content: NOACCOUNT, ephemeral: true });
+
+	try {
+		let rankings = [];
+		Object.entries(BankAccounts.get()).forEach(a => {
+			//if (a[0] == BANKADMINISTRATOR) return;
+			rankings.push({id: a[0], balance: a[1]});
+		});
+		rankings.sort((a, b) => b.balance - a.balance);
+
+		let positionInRankings = rankings.findIndex(a => a.id == interaction.user.id) + 1;
+
+		let message = '```Lozpekistan National Bank Wealth Ranking for '+interaction.user.username+': '+positionInRankings+'```';
+		interaction.reply({ content: message });
+		banklog(interaction.user.toString(),'asked for ranking');
+	} catch (err) {
+		console.log('error with leaderboard',err);
+	}
+});
+
 
 //████████████████████████████████████████████████████████████████████████████████
 //████████████████████████████████ ADMIN - account ███████████████████████████████
