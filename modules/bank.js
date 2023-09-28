@@ -33,7 +33,7 @@ new Module('bank open', 'message', OPEN, async (interaction) => {
     interaction.reply({ content: 'Thank you for opening an account with the Lozpekistan National Bank! We have given you a Ᵽ1 free!', ephemeral: true });
 	BankEvents.emit('bank-account-opened',interaction.user.id);
 
-	log(interaction.user.toString(),'opened an account');
+	banklog(interaction.user.toString(),'opened an account');
 });
 
 
@@ -52,7 +52,7 @@ new Module('bank balance', 'message', INTEREST, async (interaction) => {
 
     //get account balance
     interaction.reply({ content: 'Your current balance: `Ᵽ'+balance+'`.', ephemeral: true });
-	log(interaction.user.toString(),'checked their balance');
+	banklog(interaction.user.toString(),'checked their balance');
 });
 
 
@@ -87,7 +87,7 @@ new Module('bank interest', 'message', BALANCE, async (interaction) => {
     
     //get account balance
     interaction.reply({ content: 'You have been awarded `Ᵽ'+interestAmount+'` in interest. Your new balance is: `Ᵽ'+balance+'`.\n '+interestRateInfo, ephemeral: true });
-	log(interaction.user.toString(),'collected Ᵽ',interestAmount,'in interest','('+interestRateInfo+')');
+	banklog(interaction.user.toString(),'collected Ᵽ',interestAmount,'in interest','('+interestRateInfo+')');
 	checkRichestPersonRole(interaction.guild);
 });
 
@@ -188,7 +188,7 @@ new Module('bank transfer', 'message', TRANSFER, async (interaction) => {
 
 		//success
 		interaction.reply({ content: 'Your money was successfully transfered. \n\nYour new balance is: `Ᵽ'+balance+'`.\n\n Thank you for using Lozpekistan National Bank.', ephemeral: true });
-		log(interaction.user.toString(),'transferred Ᵽ',transferAmount,'to',payee.toString(),'for `'+memo+'`',AWARD?'[AWARD]':'');
+		banklog(interaction.user.toString(),'transferred Ᵽ',transferAmount,'to',payee.toString(),'for `'+memo+'`',AWARD?'[AWARD]':'');
 		checkRichestPersonRole(interaction.guild);
 
 	} catch (err) {interaction.reply({content: 'transfer failed: \n'+err})}
@@ -207,7 +207,7 @@ const HELP = {
 
 new Module('bank customer service', 'message', HELP, async (interaction) => {
     interaction.reply({ content: BankHelp, ephemeral: true });
-	log(interaction.user.toString(),'asked for help');
+	banklog(interaction.user.toString(),'asked for help');
 });
 
 
@@ -227,34 +227,46 @@ function datesAreOnSameDay (first, second) {
 //████████████████████████████████████████████████████████████████████████████████
 //████████████████████████████████ Leaderboard ███████████████████████████████████
 //████████████████████████████████████████████████████████████████████████████████
+const LEADERBOARDLENGTH = 25;
 const LEADERBOARD = {
 	command: 'bankleaderboard', 
-	description: 'List top 10 richest people in lozpekistan', 
+	description: 'List top '+LEADERBOARDLENGTH+' richest people in lozpekistan', 
 };
 
 function nth(n){return["st","nd","rd"][((n+90)%100-10)%10-1]||"th"} 
 
 new Module('bank leaderboard', 'message', LEADERBOARD, async (interaction) => {
-	let leaderboard = [];
-	Object.entries(BankAccounts.get()).forEach(a => {
-        leaderboard.push({id: a[0], balance: a[1]});
-    });
-	leaderboard.sort((a, b) => b.balance - a.balance);
-	let message = `\`\`\`
-Lozpekistan National Bank Top 10 Customers
-------------------------------------
+	
+	try {
+		let leaderboard = [];
+		Object.entries(BankAccounts.get()).forEach(a => {
+			//if (a[0] == BANKADMINISTRATOR) return;
+			leaderboard.push({id: a[0], balance: a[1]});
+		});
+		leaderboard.sort((a, b) => b.balance - a.balance);
+		let message = '```Lozpekistan National Bank Top '+LEADERBOARDLENGTH+' Customers \n------------------------------------\n\n'
 
-`;
-
-	for (let i = 0; i < 10; i++) {
-		if (typeof leaderboard[i] == 'undefined') break;
-		let user = await client.users.fetch(leaderboard[i].id);
-		message += `${i+1}${nth(i+1)}: ${user.username}`;
-		message += '\n';
+		let position = 1;
+		for (let i = 0; i < leaderboard.length && position < LEADERBOARDLENGTH; i++) {
+			console.log(leaderboard[i]);
+			if (typeof leaderboard[i] == 'undefined') break;
+			try {
+				let user = await client.users.fetch(leaderboard[i].id);
+				//make sure user isnt bank admin
+				if (user.id == BANKADMINISTRATOR) continue;
+				message += `${position}${nth(position)}: ${user.username}`;
+				message += '\n';
+				position++;
+			} catch (err) {
+				console.log('bad user');
+			}
+		}
+		message += '```';
+		interaction.reply({ content: message });
+		banklog(interaction.user.toString(),'asked for leaderboard');
+	} catch (err) {
+		console.log('error with leaderboard',err);
 	}
-	message += '```';
-	interaction.reply({ content: message });
-	log(interaction.user.toString(),'asked for leaderboard');
 });
 
 //████████████████████████████████████████████████████████████████████████████████
@@ -283,12 +295,15 @@ new Module('bank admin - account', 'message', ADMIN_ACCOUNT_COMMAND, async (inte
 //████████████████████████████████ LOG ███████████████████████████████████████████
 //████████████████████████████████████████████████████████████████████████████████
 
-function log () {
+function banklog () {
 	let text = Array.from(arguments).join(' ');
 
-	client.channels.fetch(BANKLOGCHANNEL).then(channel => {
-		channel.send(text);
-	});
+	try {
+		client.channels.fetch(BANKLOGCHANNEL).then(channel => {
+			channel.send(text);
+		})
+		.catch(() => {console.log('BANK LOG: ', text)});
+	} catch (e) {console.log('BANK LOG: ', text);}
 }
 
 
@@ -316,7 +331,7 @@ function checkRichestPersonRole (guild) {
 		})
 		.then(() => guild.members.fetch(largestAccount))
 		.then(member => member.roles.add(RICHESTPERSONROLE))
-		.then(member => log(member.toString(),'became richest person'))
+		.then(member => banklog(member.toString(),'became richest person'))
 		.catch(console.log)
 }
 
@@ -374,7 +389,7 @@ bankAPI.listen(4420, 'localhost', () => {console.log(`Bank API listening on port
 module.exports.getBalance = async function getBalance (userId) {
 	let account = BankAccounts.get(userId);
 	if (account == undefined) throw 'account not found';
-	log('<@'+userId+'>','checked their balance');
+	banklog('<@'+userId+'>','checked their balance');
 	return account.balance;
 }
 
@@ -387,7 +402,7 @@ module.exports.adjustBalance = async function adjustBalance (userId, amount, mem
 	let payee = await client.users.fetch(userId, {force: true});
 
 	payee.send({content: 'Hello, this is a message from Lozpekistan National Bank:', embeds:[{description:"` Ᵽ"+amount+" ` has been transferred to your account. \nReason: ` "+ memo+" ` \n Your new balance is ` Ᵽ"+(balance + amount)+" ` \n\n Have a nice day!"}]});
-	log('transferred Ᵽ',amount,'to',payee.toString(),'for `'+memo+'`');
+	banklog('transferred Ᵽ',amount,'to',payee.toString(),'for `'+memo+'`');
 
 	BankAccounts.set(userId, balance + amount);
 	return BankAccounts.get(userId);
