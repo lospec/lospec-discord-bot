@@ -337,7 +337,7 @@ const GIVEAWAY_COMMAND = {
 
 new Module('bank giveaway', 'message', GIVEAWAY_COMMAND, async (interaction) => {
 	try {
-		let balance = parseInt(BankAccounts.get(interaction.user.id));
+		let balance = BankAccounts.get(interaction.user.id);
 		let giveawayTitle = interaction.options.getString('title');
 		let giveawayAmount = interaction.options.getInteger('amount');
 		let giveawayQuantity = interaction.options.getInteger('quantity')||1;
@@ -354,7 +354,7 @@ new Module('bank giveaway', 'message', GIVEAWAY_COMMAND, async (interaction) => 
 
 		
 		//take  money 
-		if (interaction.user.id !== BANKADMINISTRATOR) BankAccounts.set(interaction.user.id, balance - transferAmount);
+		if (interaction.user.id !== BANKADMINISTRATOR) BankAccounts.set(interaction.user.id, balance - totalCost);	
 
 		//success
 		await interaction.reply({ embeds: [{
@@ -387,7 +387,7 @@ new Module('bank giveaway', 'message', GIVEAWAY_COMMAND, async (interaction) => 
 			remaining: giveawayQuantity, 
 			claimedBy: [] });
 		
-		banklog(interaction.user.toString(),'started giveaway for Ᵽ'+giveawayAmount);
+		banklog(interaction.user.toString(),'started giveaway for Ᵽ'+giveawayAmount+' each to '+giveawayQuantity+' people ('+totalCost+' total)');
 		checkRichestPersonRole(interaction.guild);
 
 	} catch (err) {
@@ -395,7 +395,7 @@ new Module('bank giveaway', 'message', GIVEAWAY_COMMAND, async (interaction) => 
 	}
 });
 
-// command chat input select dropdown command
+//user clicked claim button
 client.on('interactionCreate', async (interaction, user) => {
 
 	try {
@@ -428,8 +428,8 @@ client.on('interactionCreate', async (interaction, user) => {
 			//update message
 			let giveawayMessage = interaction.message;
 			await giveawayMessage.edit({ embeds: [{
-				title: 'GIVEAWAY: '+giveaway.title+' by '+interaction.user.toString()+'!',
-				description: 'Claim '+giveaway.amount+' Ᵽ from '+interaction.user.toString()+'! \n\n'+
+				title: 'GIVEAWAY: '+giveaway.title+' by <@'+giveaway.creator+'>',
+				description: 'Claim '+giveaway.amount+' Ᵽ from <@'+giveaway.creator+'>! \n\n'+
 					'**Claimed by:** '+giveaway.claimedBy.map(id => '<@'+id+'>').join(', ')+'\n\n'+
 					'**'+giveaway.remaining+'** more people can claim this giveaway.',
 			}]});
@@ -439,6 +439,7 @@ client.on('interactionCreate', async (interaction, user) => {
 	
 	} catch (err) {
 		console.log('error claiming giveaway',err);
+		banklog('error claiming giveaway',err?.message);
 	}
 });
 
