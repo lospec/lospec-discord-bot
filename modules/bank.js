@@ -452,7 +452,8 @@ async function endGiveaway (giveawayMessage) {
 	await giveawayMessage.edit({ embeds: [{
 		title: 'GIVEAWAY: '+giveaway.title,
 		description: '**This giveaway has ended!**\n\n'+
-		'**Claimed by:** '+giveaway.claimedBy.map(id => '<@'+id+'>').join(', ')
+			'<@'+giveaway.creator+'>' + ' gave away '+ giveaway.amount+'Ᵽ to '+giveaway.quantity+' people.\n\n'+
+			'**Claimed by:** '+giveaway.claimedBy.map(id => '<@'+id+'>').join(', ')
 	}]});
 
 	//delete giveaway
