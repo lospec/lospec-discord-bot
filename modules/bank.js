@@ -428,7 +428,7 @@ client.on('interactionCreate', async (interaction, user) => {
 			//update message
 			let giveawayMessage = interaction.message;
 			await giveawayMessage.edit({ embeds: [{
-				title: 'GIVEAWAY: '+giveaway.title+' by <@'+giveaway.creator+'>',
+				title: 'GIVEAWAY: '+giveaway.title,
 				description: 'Claim '+giveaway.amount+' Ᵽ from <@'+giveaway.creator+'>! \n\n'+
 					'**Claimed by:** '+giveaway.claimedBy.map(id => '<@'+id+'>').join(', ')+'\n\n'+
 					'**'+giveaway.remaining+'** more people can claim this giveaway.',
