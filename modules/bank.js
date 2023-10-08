@@ -565,12 +565,12 @@ let bankAPI = express();
 bankAPI.use(express.json());
 
 bankAPI.use((req, res, next)=> {
-	console.log('BANK API REQUEST |', req.method+' '+req.originalUrl);
-	if (!BankApiKeys.has(req.headers.authorization)) {
-		console.log('BANK API REQUEST |', 'invalid api key:', req.headers.authorization);
+	let apikey = req?.headers?.authorization;
+	if (!BankApiKeys.has(apikey)) {
+		console.log('BANK API REQUEST |', req.method+' '+req.originalUrl + ' |', 'INVALID KEY:', apikey);
 		return res.sendStatus(401);
-	}
-	
+	} else console.log('BANK API REQUEST |', req.method+' '+req.originalUrl);
+
 	next();
 });
 
