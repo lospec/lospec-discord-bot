@@ -341,20 +341,23 @@ new Module('bank giveaway', 'message', GIVEAWAY_COMMAND, async (interaction) => 
 		let giveawayTitle = interaction.options.getString('title');
 		let giveawayAmount = interaction.options.getInteger('amount');
 		let giveawayQuantity = interaction.options.getInteger('quantity')||1;
-
+		let isAdmin = (interaction.user.id == BANKADMINISTRATOR);
 		let totalCost = giveawayAmount * giveawayQuantity;
+
+		console.log('is admin',isAdmin,interaction.user.id == BANKADMINISTRATOR, interaction.user.id, BANKADMINISTRATOR)
 
 		//check for errors
 		if (typeof balance == 'undefined') 
 			return interaction.reply({ content: NOACCOUNT, ephemeral: true });
 		if (totalCost <= 0) 
 			return interaction.reply({ content: 'We\'re sorry, transfer amount must be a positive number.', ephemeral: true });
-		if (totalCost > balance) 
+		if (!isAdmin && totalCost > balance) 
 			return interaction.reply({ content: 'We\'re sorry, you do not have the funds to make this transfer.', ephemeral: true });    
+		
 
 		
 		//take  money 
-		if (interaction.user.id !== BANKADMINISTRATOR) BankAccounts.set(interaction.user.id, balance - totalCost);	
+		if (!isAdmin) BankAccounts.set(interaction.user.id, balance - totalCost);	
 
 		//success
 		await interaction.reply({ embeds: [{
@@ -452,7 +455,7 @@ async function endGiveaway (giveawayMessage) {
 	await giveawayMessage.edit({ embeds: [{
 		title: 'GIVEAWAY: '+giveaway.title,
 		description: '**This giveaway has ended!**\n\n'+
-			'<@'+giveaway.creator+'>' + ' gave away '+ giveaway.amount+'Ᵽ to '+giveaway.quantity+' people.\n\n'+
+			'<@'+giveaway.creator+'>' + ' gave away **'+ giveaway.amount+'Ᵽ** to **'+giveaway.quantity+'** people.\n\n'+
 			'**Claimed by:** '+giveaway.claimedBy.map(id => '<@'+id+'>').join(', ')
 	}]});
 
