@@ -3,6 +3,7 @@ const store = require('data-store');
 const BankConfig = new store({ path: __dirname+'/../config/bank.json' });
 const BankAccounts = new store({ path: __dirname+'/../data/bank-accounts.json' });
 const BankInterest = new store({ path: __dirname+'/../data/bank-interest.json' });
+const BankApiKeys = new store({ path: __dirname+'/../data/bank-api-keys.json' });
 const events = require('events');
 const BankEvents =  new events.EventEmitter(); 
 module.exports = BankEvents;
@@ -487,6 +488,29 @@ new Module('bank admin - account', 'message', ADMIN_ACCOUNT_COMMAND, async (inte
     interaction.reply({ content: JSON.stringify({user: payee.username, userid: payee.id, balance: BankAccounts.get(payee.id), interest: BankInterest.get(payee.id)}), ephemeral: true });
 });
 
+//████████████████████████████████████████████████████████████████████████████████
+//████████████████████████████████ ADMIN - create api key ████████████████████████
+//████████████████████████████████████████████████████████████████████████████████
+
+const BANKAPIKEYCOMMAND = {
+	command: 'bankaddapikey', 
+	description: 'create a bank api key for a user/app to use the bank api', 
+	options: [{
+		name: 'description',
+		type: 3,
+		description: 'description of what app/game/user this api key is for',
+		required: true
+	}]
+};
+
+new Module('bank admin - add api key', 'message', BANKAPIKEYCOMMAND, async (interaction) => {
+	if (interaction.user.id != BANKADMINISTRATOR) return interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
+	let description = interaction.options.getString('description');
+	let key = Array.from({ length: 6 }, () => Math.random().toString(36).substring(2, 15)).join('');
+	BankApiKeys.set(key, {description: description, created: new Date()});
+	interaction.reply({ content: 'Newly generated API key for **'+description+'**:\n\n`'+key+'`', ephemeral: true });
+});
+
 
 //████████████████████████████████████████████████████████████████████████████████
 //████████████████████████████████ LOG ███████████████████████████████████████████
@@ -542,6 +566,7 @@ bankAPI.use(express.json());
 
 bankAPI.use((req, res, next)=> {
 	console.log('BANK API REQUEST |', req.method+' '+req.originalUrl, res.statusCode);
+	if (BankApiKeys.has(req.headers.authorization)) return res.sendStatus(401);
 	next();
 });
 
@@ -577,7 +602,7 @@ bankAPI.put('/balance/:userId', function(req, res) {
 });
 
 bankAPI.use((req, res)=> {return res.sendStatus(404);});
-bankAPI.listen(4420, 'localhost', () => {console.log(`Bank API listening on port 4420`);});
+bankAPI.listen(4420, '0.0.0.0', () => {console.log(`Bank API listening on port 0.0.0.0:4420`);});
 
 //████████████████████████████████████████████████████████████████████████████████
 //████████████████████████████████ INTERNAL API ██████████████████████████████████
