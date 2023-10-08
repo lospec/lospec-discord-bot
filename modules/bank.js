@@ -565,8 +565,12 @@ let bankAPI = express();
 bankAPI.use(express.json());
 
 bankAPI.use((req, res, next)=> {
-	console.log('BANK API REQUEST |', req.method+' '+req.originalUrl, res.statusCode);
-	if (BankApiKeys.has(req.headers.authorization)) return res.sendStatus(401);
+	console.log('BANK API REQUEST |', req.method+' '+req.originalUrl);
+	if (!BankApiKeys.has(req.headers.authorization)) {
+		console.log('BANK API REQUEST |', 'invalid api key:', req.headers.authorization);
+		return res.sendStatus(401);
+	}
+	
 	next();
 });
 
