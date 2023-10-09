@@ -73,6 +73,8 @@ new Module('bank interest', 'message', BALANCE, async (interaction) => {
     let balance = BankAccounts.get(interaction.user.id);
 	let interestRate = getInterestLevel(interaction).rate;
 	let interestAmount = Math.max(1, Math.round(balance * interestRate));
+		if (balance > 100 && interestAmount==1) interestAmount++;
+		if (balance > 500 && interestAmount==2) interestAmount++;
 	let interestRateInfo = 'Interest Rate Class: `  '+getInterestLevel(interaction).name+'  ('+(interestRate*100)+'%)  `';
 		
 	//figure out how long ago the user last collected interest
