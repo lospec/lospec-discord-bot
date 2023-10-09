@@ -234,14 +234,7 @@ client.on('interactionCreate', (interaction, user) => {
 	
 	checkSlashCommand(user,interaction.commandName,interaction);
 });
-// command chat input select dropdown command
-client.on('interactionCreate', (interaction, user) => {
-	console.log('selectiomenu',interaction.isSelectMenu())
-	if (!interaction.isSelectMenu()) return;
-	
-	console.log('WHATS THE NA<E',interaction.customId)
-	checkSlashCommand(user,interaction.customId,interaction);
-});
+
 
 client.on('voiceStateUpdate', (oldState, newState) => {
 
@@ -344,20 +337,20 @@ glob.sync('/modules/*.js', {root: __dirname}).forEach(filepath => {
 });
 
 //catches and logs error messages not caught by trycatch around require()
-process.on('uncaughtException', function(err){
-	let filename = 'unknown file';
-	try {
-		let logLineDetails = ((err.stack).split("at ")[1]).trim();
-		let firstLine = logLineDetails = /\((.+):\d+:\d+\)/gi.exec(logLineDetails)[1];
-		let extension = path.extname(firstLine);
-		filename = path.basename(firstLine,extension);
-	} catch (e) {}
+// process.on('uncaughtException', function(err){
+// 	let filename = 'unknown file';
+// 	try {
+// 		let logLineDetails = ((err.stack).split("at ")[1]).trim();
+// 		let firstLine = logLineDetails = /\((.+):\d+:\d+\)/gi.exec(logLineDetails)[1];
+// 		let extension = path.extname(firstLine);
+// 		filename = path.basename(firstLine,extension);
+// 	} catch (e) {}
 
-	//log
-	log({module: filename, error:err});
-	console.log('\n\n This error was produced by an uncaught exeption, the bot may be in an usable state so it\'s shutting down. To keep the bot running, you can either set exitOnUncaughtException to false in the config (not reccomended), or you can use a process manager to restart the bot when it crashes (such as PM2).');
-	if (CONFIG.exitOnUncaughtException) process.exit();
-});
+// 	//log
+// 	log({module: filename, error:err});
+// 	console.log('\n\n This error was produced by an uncaught exeption, the bot may be in an usable state so it\'s shutting down. To keep the bot running, you can either set exitOnUncaughtException to false in the config (not reccomended), or you can use a process manager to restart the bot when it crashes (such as PM2).');
+// 	if (CONFIG.exitOnUncaughtException) process.exit();
+// });
 
 //when bot is connected
 client.once('ready', () => {
