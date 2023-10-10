@@ -231,10 +231,15 @@ client.on('interactionCreate', (interaction, user) => {
 // context menu right click app commands
 client.on('interactionCreate', (interaction, user) => {
 	if (!interaction.isMessageContextMenu()) return;
-	
 	checkSlashCommand(user,interaction.commandName,interaction);
 });
 
+// command chat input select dropdown command
+client.on('interactionCreate', (interaction, user) => {
+	if (!interaction.isSelectMenu()) return;
+	console.log('selection menu',interaction.isSelectMenu(), interaction.customId, interaction.values, interaction);
+	checkSlashCommand(user,interaction.customId,interaction);
+});
 
 client.on('voiceStateUpdate', (oldState, newState) => {
 
