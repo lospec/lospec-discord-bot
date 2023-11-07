@@ -359,6 +359,9 @@ process.on('uncaughtException', function(err){
 
 //when bot is connected
 client.once('ready', () => {
+
+	if (CONFIG.guildId && CONFIG.siteLogChannelId) client.guilds.cache.get(CONFIG.guildId).channels.cache.get(CONFIG.siteLogChannelId).send('Bot started');
+
 	//store guild info
 	global.guild = client.guilds.cache.first();
 
@@ -370,7 +373,7 @@ client.once('ready', () => {
 
 	log('connected to',guild.name,'as',client.user.username);
 
-	console.log()
+
 
 	loadSlashCommands(client.user.id);
 });
