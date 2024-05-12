@@ -540,7 +540,7 @@ function checkRichestPersonRole (guild) {
 
 	let largestAccount = Object.keys(accounts).reduce((prev,curr) => {
 		console.log({prev: prev, curr: curr});
-		if (accounts[curr] == BANKADMINISTRATOR) return false;
+		if (curr == BANKADMINISTRATOR) return false;
 		return accounts[prev] > accounts[curr] ? prev :curr;
 	}, Object.keys(accounts)[0]);
 
