@@ -574,7 +574,7 @@ bankAPI.use((req, res, next)=> {
 		return res.sendStatus(401);
 	} 
 	
-	else console.log('BANK API REQUEST |', req.method+' '+req.originalUrl + ' | '+ req.body);
+	else console.log('BANK API REQUEST |', req.method+' '+req.originalUrl + ' | ', req.body);
 
 	next();
 });
