@@ -595,7 +595,10 @@ bankAPI.post('/balance/:userId', function(req, res) {
 		if (balance == undefined) return res.sendStatus(404);
 	let amount = parseInt(req.body.amount);
 	let newBalance = parseInt(balance + amount);
-		if (isNaN(amount) || isNaN(newBalance)) return res.sendStatus(400);
+		if (isNaN(amount) || isNaN(newBalance)) {
+			console.log('bank api error: invalid amount or balance',{amount, newBalance});
+			return res.sendStatus(400);
+		}
 	console.log('setting balance of',req.params.userId,'to',newBalance);
 	banklog('BANK API | <:'+req.params.userId+':> balance set to ',newBalance);
 
