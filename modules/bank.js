@@ -592,13 +592,12 @@ bankAPI.get('/balance/:userId', function(req, res) {
 
 bankAPI.post('/balance/:userId', function(req, res) {
 	let balance = BankAccounts.get(req.params.userId);
-	if (balance == undefined) return res.sendStatus(404);
+		if (balance == undefined) return res.sendStatus(404);
 	let amount = parseInt(req.body.amount);
-	if (amount == NaN) return res.sendStatus(400);
 	let newBalance = parseInt(balance + amount);
-	if (newBalance == NaN) return res.sendStatus(400);
+		if (isNaN(amount) || isNaN(newBalance)) return res.sendStatus(400);
 	console.log('setting balance of',req.params.userId,'to',newBalance);
-	banklog('BANK API | ',req.params.userId,'balance set to',newBalance);
+	banklog('BANK API | <:'+req.params.userId+':> balance set to ',newBalance);
 
 	BankAccounts.set(req.params.userId, newBalance);
 	res.json(BankAccounts.get(req.params.userId));
