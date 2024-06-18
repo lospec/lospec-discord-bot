@@ -572,7 +572,9 @@ bankAPI.use((req, res, next)=> {
 	if (!apikey || !BankApiKeys.has(apikey)) {
 		console.log('BANK API REQUEST |', req.method+' '+req.originalUrl + ' |', 'INVALID KEY:', apikey);
 		return res.sendStatus(401);
-	} else console.log('BANK API REQUEST |', req.method+' '+req.originalUrl);
+	} 
+	
+	else console.log('BANK API REQUEST |', req.method+' '+req.originalUrl + ' | '+ req.body);
 
 	next();
 });
@@ -593,8 +595,12 @@ bankAPI.post('/balance/:userId', function(req, res) {
 	if (balance == undefined) return res.sendStatus(404);
 	let amount = parseInt(req.body.amount);
 	if (amount == NaN) return res.sendStatus(400);
+	let newBalance = parseInt(balance + amount);
+	if (newBalance == NaN) return res.sendStatus(400);
+	console.log('setting balance of',req.params.userId,'to',newBalance);
+	banklog('BANK API | ',req.params.userId,'balance set to',newBalance);
 
-	BankAccounts.set(req.params.userId+'.balance', balance + amount);
+	BankAccounts.set(req.params.userId, newBalance);
 	res.json(BankAccounts.get(req.params.userId));
 });
 
