@@ -96,37 +96,20 @@ new Module('bank interest', 'message', BALANCE, async (interaction) => {
 
 function getInterestLevel (interaction) {
 	
-	//dragon
+	if (interaction.member.roles.cache.has('1282737878220148808')) return {rate: 0.006, name: 'TITAN'};
 	if (interaction.member.roles.cache.has('506164884204027943')) return {rate: 0.006, name: 'DRAGON'};
-	
-	//cyclops
+	if (interaction.member.roles.cache.has('1282738116297228400')) return {rate: 0.006, name: 'MANTICORE'};
 	if (interaction.member.roles.cache.has('506164942416904194')) return {rate: 0.005, name: 'CYCLOPS'};
-	
-	//orc
+	if (interaction.member.roles.cache.has('1282734839438512149')) return {rate: 0.005, name: 'MINOTAUR'};
 	if (interaction.member.roles.cache.has('506164966949257227')) return {rate: 0.004, name: 'ORC'};
-	
-	//goblin
+	if (interaction.member.roles.cache.has('1282733498305613844')) return {rate: 0.004, name: 'HOBGOBLIN'};
 	if (interaction.member.roles.cache.has('506165021622140968')) return {rate: 0.003, name: 'GOBLIN'};
-	
-	//imp
 	if (interaction.member.roles.cache.has('506165059022487573')) return {rate: 0.002, name: 'IMP'};
-	
-	//jalapeno king
 	if (interaction.member.roles.cache.has('610568462879817739')) return {rate: 0.00175, name: 'JALAPENO KING'};
-		
-	//killer robot killer
 	if (interaction.member.roles.cache.has('854087304809152522')) return {rate: 0.0016, name: 'KILLER ROBOT KILLER'};
-	
-	//lozpekamon master
 	if (interaction.member.roles.cache.has('837748194585608232')) return {rate: 0.0016, name: 'LOZPEKAMON MASTER'};
-	
-	//nitro booster
 	if (interaction.member.roles.cache.has('641648853455732742')) return {rate: 0.0016, name: 'NITRO BOOSTER'};
-	
-	//active member
 	if (interaction.member.roles.cache.has('839480902563659836')) return {rate: 0.0015, name: 'ACTIVE MEMBER'};
-	
-	//default
 	return {rate: 0.001, name: 'DEFAULT'};
 }
 
