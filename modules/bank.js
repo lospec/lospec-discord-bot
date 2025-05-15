@@ -610,7 +610,7 @@ module.exports.getBalance = async function getBalance (userId) {
 	let account = BankAccounts.get(userId);
 	if (account == undefined) throw 'account not found';
 	banklog('<@'+userId+'>','checked their balance');
-	return account.balance;
+	return account;
 }
 
 module.exports.adjustBalance = async function adjustBalance (userId, amount, memo) {
